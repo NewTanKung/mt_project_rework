@@ -1,0 +1,250 @@
+{% extends "admin/layout.html" %}
+
+{% block title %}ผู้ใช้{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>จัดการผู้ใช้</h1>
+    <p class="text-muted-custom">เพิ่ม แก้ไข และลบผู้ใช้งานระบบ</p>
+</div>
+
+<!-- Alert Container -->
+<div id="alertContainer"></div>
+
+<!-- Add Button -->
+<div class="mb-3">
+    <button class="btn btn-primary-custom btn-custom" data-bs-toggle="modal" data-bs-target="#userModal"
+        onclick="openAddModal()">
+        ➕ เพิ่มผู้ใช้
+    </button>
+</div>
+
+<!-- Users Table -->
+<div class="card card-custom">
+    <div class="card-header">
+        <h5 class="mb-0">รายการผู้ใช้</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-custom">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Role</th>
+                        <th>จัดการ</th>
+                    </tr>
+                </thead>
+                <tbody id="usersTableBody">
+                    <tr>
+                        <td colspan="4" class="text-center text-muted-custom">
+                            กำลังโหลด...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- User Modal -->
+<div class="modal fade" id="userModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">เพิ่มผู้ใช้</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="userForm">
+                    <input type="hidden" id="userId">
+                    <input type="hidden" id="isEdit" value="false">
+
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <input type="text" class="form-control form-control-custom" id="username" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" class="form-control form-control-custom" id="password" required>
+                        <small class="text-muted-custom" id="passwordHint">
+                            ใส่รหัสผ่านใหม่ หรือเว้นว่างถ้าไม่ต้องการเปลี่ยน
+                        </small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="role" class="form-label">Role</label>
+                        <select class="form-select form-control-custom" id="role" required>
+                            <option value="user">User</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+                <button type="button" class="btn btn-primary-custom btn-custom" onclick="saveUser()">บันทึก</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let users = [];
+    let userModal;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        userModal = new bootstrap.Modal(document.getElementById('userModal'));
+        loadUsers();
+    });
+
+    // Load users
+    async function loadUsers() {
+        try {
+            const response = await fetch('/api/admin/users');
+            const data = await response.json();
+            users = data.users;
+            renderUsers();
+        } catch (error) {
+            console.error('Error loading users:', error);
+        }
+    }
+
+    // Render users table
+    function renderUsers() {
+        const tbody = document.getElementById('usersTableBody');
+
+        if (users.length === 0) {
+            tbody.innerHTML = `
+            <tr>
+                <td colspan="4" class="text-center text-muted-custom">
+                    ไม่มีผู้ใช้
+                </td>
+            </tr>
+        `;
+            return;
+        }
+
+        tbody.innerHTML = users.map(user => `
+        <tr>
+            <td>${user.id}</td>
+            <td>${user.username}</td>
+            <td>
+                <span class="badge badge-custom ${user.role === 'admin' ? 'bg-danger' : 'bg-primary'}">
+                    ${user.role}
+                </span>
+            </td>
+            <td>
+                <button class="btn btn-sm btn-primary" onclick="editUser(${user.id}, '${user.username}', '${user.role}')">
+                    แก้ไข
+                </button>
+                <button class="btn btn-sm btn-danger" onclick="deleteUser(${user.id})" 
+                        ${user.id === 1 ? 'disabled' : ''}>
+                    ลบ
+                </button>
+            </td>
+        </tr>
+    `).join('');
+    }
+
+    // Open add modal
+    function openAddModal() {
+        document.getElementById('modalTitle').textContent = 'เพิ่มผู้ใช้';
+        document.getElementById('userForm').reset();
+        document.getElementById('userId').value = '';
+        document.getElementById('isEdit').value = 'false';
+        document.getElementById('password').required = true;
+        document.getElementById('passwordHint').classList.add('d-none');
+    }
+
+    // Edit user
+    function editUser(id, username, role) {
+        document.getElementById('modalTitle').textContent = 'แก้ไขผู้ใช้';
+        document.getElementById('userId').value = id;
+        document.getElementById('username').value = username;
+        document.getElementById('password').value = '';
+        document.getElementById('password').required = false;
+        document.getElementById('role').value = role;
+        document.getElementById('isEdit').value = 'true';
+        document.getElementById('passwordHint').classList.remove('d-none');
+        userModal.show();
+    }
+
+    // Save user
+    async function saveUser() {
+        const isEdit = document.getElementById('isEdit').value === 'true';
+        const userId = document.getElementById('userId').value;
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        const role = document.getElementById('role').value;
+
+        // Validation
+        if (!username || !role) {
+            showAlert('กรุณากรอกข้อมูลให้ครบ', 'warning');
+            return;
+        }
+
+        if (!isEdit && !password) {
+            showAlert('กรุณากรอกรหัสผ่าน', 'warning');
+            return;
+        }
+
+        const payload = {
+            username,
+            role
+        };
+
+        if (password) {
+            payload.password = password;
+        }
+
+        try {
+            const url = isEdit ? `/api/admin/users/${userId}` : '/api/admin/users';
+            const method = isEdit ? 'PATCH' : 'POST';
+
+            const response = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showAlert(isEdit ? 'แก้ไขผู้ใช้สำเร็จ' : 'เพิ่มผู้ใช้สำเร็จ', 'success');
+                userModal.hide();
+                loadUsers();
+            } else {
+                showAlert(data.message || 'เกิดข้อผิดพลาด', 'danger');
+            }
+        } catch (error) {
+            showAlert('เกิดข้อผิดพลาด', 'danger');
+        }
+    }
+
+    // Delete user
+    async function deleteUser(userId) {
+        if (!confirm('ต้องการลบผู้ใช้นี้หรือไม่?')) return;
+
+        try {
+            const response = await fetch(`/api/admin/users/${userId}`, {
+                method: 'DELETE'
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showAlert('ลบผู้ใช้สำเร็จ', 'success');
+                loadUsers();
+            } else {
+                showAlert(data.message || 'เกิดข้อผิดพลาด', 'danger');
+            }
+        } catch (error) {
+            showAlert('เกิดข้อผิดพลาด', 'danger');
+        }
+    }
+</script>
+{% endblock %}

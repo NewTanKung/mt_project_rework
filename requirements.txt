@@ -1,0 +1,32 @@
+# Web Framework
+Flask==3.0.0
+Werkzeug==3.0.1
+
+# Desktop GUI
+pywebview==5.0.5
+
+# Audio
+sounddevice==0.4.6
+numpy==1.26.2
+scipy==1.11.4
+
+# Transcription
+# Note: openai-whisper ใช้แทน faster-whisper เพราะ av package มีปัญหาบน Windows
+openai-whisper==20231117
+# TODO: เปลี่ยนเป็น faster-whisper เมื่อแก้ไขปัญหา av แล้ว
+
+# PDF Export
+reportlab==4.0.7
+
+# Word Export
+python-docx==1.1.0
+
+# Utilities
+python-dotenv==1.0.0
+requests==2.31.0
+
+# Security
+bcrypt==4.1.2
+
+# Logging
+colorlog==6.8.0

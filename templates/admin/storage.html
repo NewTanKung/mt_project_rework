@@ -1,0 +1,139 @@
+{% extends "admin/layout.html" %}
+
+{% block title %}จัดเก็บ{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>การจัดเก็บไฟล์</h1>
+    <p class="text-muted-custom">กำหนด path สำหรับเก็บไฟล์ต่างๆ</p>
+</div>
+
+<!-- Alert Container -->
+<div id="alertContainer"></div>
+
+<!-- Storage Settings Form -->
+<div class="card card-custom">
+    <div class="card-header">
+        <h5 class="mb-0">ตั้งค่า Storage Paths</h5>
+    </div>
+    <div class="card-body">
+        <form id="storageForm" onsubmit="saveStorage(event)">
+            <div class="mb-3">
+                <label for="exportPath" class="form-label">Export Path (PDF)</label>
+                <input type="text" class="form-control form-control-custom" id="exportPath" required
+                    placeholder="C:\MeetingRecorder\exports">
+                <small class="text-muted-custom">โฟลเดอร์สำหรับเก็บไฟล์ PDF ที่ export</small>
+            </div>
+
+            <div class="mb-3">
+                <label for="audioPath" class="form-label">Audio Path</label>
+                <input type="text" class="form-control form-control-custom" id="audioPath" required
+                    placeholder="C:\MeetingRecorder\audio">
+                <small class="text-muted-custom">โฟลเดอร์สำหรับเก็บไฟล์เสียงที่บันทึก</small>
+            </div>
+
+            <div class="mb-3">
+                <label for="transcriptionPath" class="form-label">Transcription Path</label>
+                <input type="text" class="form-control form-control-custom" id="transcriptionPath" required
+                    placeholder="C:\MeetingRecorder\transcriptions">
+                <small class="text-muted-custom">โฟลเดอร์สำหรับเก็บไฟล์ถอดเสียง</small>
+            </div>
+
+            <div class="mb-4">
+                <label for="modelPath" class="form-label">Model Path</label>
+                <input type="text" class="form-control form-control-custom" id="modelPath" required
+                    placeholder="C:\MeetingRecorder\models">
+                <small class="text-muted-custom">โฟลเดอร์สำหรับเก็บโมเดล Whisper</small>
+            </div>
+
+            <button type="submit" class="btn btn-primary-custom btn-custom">
+                <span id="saveText">💾 บันทึก</span>
+                <span id="saveSpinner" class="spinner-custom d-none"></span>
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Path Info -->
+<div class="card card-custom">
+    <div class="card-header">
+        <h5 class="mb-0">ℹ️ คำแนะนำ</h5>
+    </div>
+    <div class="card-body">
+        <ul>
+            <li>Path ควรอยู่ใน drive ที่มีพื้นที่เพียงพอ</li>
+            <li>โปรแกรมจะสร้างโฟลเดอร์อัตโนมัติถ้ายังไม่มี</li>
+            <li>แนะนำให้ใช้ path ที่ไม่อยู่ใน System Drive (C:) เพื่อความปลอดภัย</li>
+            <li>ตรวจสอบให้แน่ใจว่าโปรแกรมมีสิทธิ์เขียนไฟล์ใน path ที่กำหนด</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        loadStorageSettings();
+    });
+
+    // Load storage settings
+    async function loadStorageSettings() {
+        try {
+            const response = await fetch('/api/admin/storage');
+            const data = await response.json();
+
+            if (data.settings) {
+                document.getElementById('exportPath').value = data.settings.export_path || '';
+                document.getElementById('audioPath').value = data.settings.audio_path || '';
+                document.getElementById('transcriptionPath').value = data.settings.transcription_path || '';
+                document.getElementById('modelPath').value = data.settings.model_path || '';
+            }
+        } catch (error) {
+            console.error('Error loading storage settings:', error);
+        }
+    }
+
+    // Save storage settings
+    async function saveStorage(event) {
+        event.preventDefault();
+
+        const saveText = document.getElementById('saveText');
+        const saveSpinner = document.getElementById('saveSpinner');
+        const submitBtn = event.target.querySelector('button[type="submit"]');
+
+        // Disable button
+        submitBtn.disabled = true;
+        saveText.classList.add('d-none');
+        saveSpinner.classList.remove('d-none');
+
+        const settings = {
+            export_path: document.getElementById('exportPath').value,
+            audio_path: document.getElementById('audioPath').value,
+            transcription_path: document.getElementById('transcriptionPath').value,
+            model_path: document.getElementById('modelPath').value
+        };
+
+        try {
+            const response = await fetch('/api/admin/storage', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(settings)
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showAlert('บันทึกการตั้งค่าสำเร็จ', 'success');
+            } else {
+                showAlert(data.message || 'เกิดข้อผิดพลาด', 'danger');
+            }
+        } catch (error) {
+            showAlert('ไม่สามารถบันทึกได้', 'danger');
+        } finally {
+            submitBtn.disabled = false;
+            saveText.classList.remove('d-none');
+            saveSpinner.classList.add('d-none');
+        }
+    }
+</script>
+{% endblock %}

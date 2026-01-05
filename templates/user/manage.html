@@ -1,0 +1,938 @@
+{% extends "user/layout.html" %}
+
+{% block title %}จัดการประชุม{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>จัดการการประชุม</h1>
+    <p class="text-muted-custom">ดู แก้ไข ลบ และถอดเสียงการประชุม</p>
+</div>
+
+<!-- Alert Container -->
+<div id="alertContainer"></div>
+
+<!-- Search and Filter -->
+<div class="card card-custom">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <input type="text" class="form-control form-control-custom" id="searchInput"
+                    placeholder="ค้นหาชื่อการประชุม..." onkeyup="searchMeetings()">
+            </div>
+            <div class="col-md-3">
+                <select class="form-select form-control-custom" id="statusFilter" onchange="filterByStatus()">
+                    <option value="">ทุกสถานะ</option>
+                    <option value="registered">ล งทะเบียนแล้ว</option>
+                    <option value="recording">กำลังบันทึก</option>
+                    <option value="completed">เสร็จสิ้น</option>
+                    <option value="transcribed">ถอดเสียงแล้ว</option>
+                </select>
+            </div>
+            <div class="col-md-3 text-end">
+                <button class="btn btn-warning btn-custom me-2" onclick="clearAllTranscriptionJobs()">
+                    เคลียร์งานค้าง
+                </button>
+                <button class="btn btn-primary-custom btn-custom" onclick="refreshMeetings()">
+                    รีเฟรช
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Meetings Table -->
+<div class="card card-custom">
+    <div class="card-header">
+        <h5 class="mb-0">รายการการประชุม</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-custom">
+                <thead>
+                    <tr>
+                        <th>ชื่อการประชุม</th>
+                        <th>วันที่</th>
+                        <th>เวลา</th>
+                        <th>สถานะ</th>
+                        <th>จัดการ</th>
+                    </tr>
+                </thead>
+                <tbody id="meetingsTableBody">
+                    <tr>
+                        <td colspan="5" class="text-center text-muted-custom">
+                            กำลังโหลด...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Transcribe Modal -->
+<div class="modal fade" id="transcribeModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">ถอดเสียงการประชุม</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="transcribeMeetingId">
+
+                <div class="mb-3">
+                    <label for="modelSelect" class="form-label">เลือกโมเดล</label>
+                    <select class="form-select form-control-custom" id="modelSelect" required>
+                        <!-- Models will be loaded here -->
+                    </select>
+                    <small class="text-muted-custom">เลือกโมเดลที่ Admin ดาวน์โหลดไว้แล้ว</small>
+                </div>
+
+                <div class="mb-3">
+                    <label for="languageSelect" class="form-label">ภาษา</label>
+                    <select class="form-select form-control-custom" id="languageSelect">
+                        <option value="th">ไทย</option>
+                        <option value="en">อังกฤษ</option>
+                    </select>
+                </div>
+
+                <div class="alert alert-info">
+                    <strong>หมายเหตุ:</strong> การถอดเสียงอาจใช้เวลานาน ขึ้นอยู่กับความยาวของการประชุมและโมเดลที่เลือก
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+                <button type="button" class="btn btn-primary-custom btn-custom" onclick="startTranscription()">
+                    เริ่มถอดเสียง
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- View Details Modal -->
+<div class="modal fade" id="detailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">รายละเอียดการประชุม</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="meetingDetails">กำลังโหลด...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Transcription Modal -->
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">✏️ แก้ไขการถอดเสียง</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editVoiceId">
+                <input type="hidden" id="editMeetingId">
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">ชื่อผู้พูด</label>
+                        <input type="text" class="form-control" id="editSpeaker">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">เวลาเริ่ม</label>
+                        <input type="text" class="form-control" id="editStart" placeholder="00:01:23">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">เวลาสิ้นสุด</label>
+                        <input type="text" class="form-control" id="editEnd" placeholder="00:02:45">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">เนื้อหา</label>
+                    <textarea class="form-control" id="editContent" rows="8"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+                <button type="button" class="btn btn-primary" onclick="saveEdit()">💾 บันทึก</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Search Transcription Script -->
+<script src="{{ url_for('static', filename='js/search_transcription.js') }}"></script>
+
+<script>
+    let meetings = [];
+    let transcribeModal;
+    let detailsModal;
+    let editModal;
+    // Global variables for transcription polling
+    let currentMeetingId = null;
+    let transcriptionPolling = null;
+    let completedJobs = new Set(); // Track completed jobs to avoid duplicate notifications
+
+    document.addEventListener('DOMContentLoaded', () => {
+        transcribeModal = new bootstrap.Modal(document.getElementById('transcribeModal'));
+        detailsModal = new bootstrap.Modal(document.getElementById('detailsModal'));
+        editModal = new bootstrap.Modal(document.getElementById('editModal'));
+        loadMeetings();
+        loadModels();
+        // ✅ Start polling for transcription jobs
+        startTranscriptionPolling();
+    });
+
+    // Load meetings
+    async function loadMeetings(search = '', status = '') {
+        try {
+            let url = '/api/user/meetings?';
+            if (search) url += `search=${encodeURIComponent(search)}&`;
+            if (status) url += `status=${status}&`;
+
+            const response = await fetch(url);
+            const data = await response.json();
+            meetings = data.meetings;
+            renderMeetings();
+        } catch (error) {
+            showAlert('ไม่สามารถโหลดข้อมูลได้', 'danger');
+        }
+    }
+
+    // Render meetings table
+    function renderMeetings() {
+        const tbody = document.getElementById('meetingsTableBody');
+
+        if (meetings.length === 0) {
+            tbody.innerHTML = `
+            <tr>
+                <td colspan="5" class="text-center text-muted-custom">
+                    ไม่พบข้อมูล
+                </td>
+            </tr>
+        `;
+            return;
+        }
+
+        tbody.innerHTML = meetings.map(m => `
+        <tr data-meeting-id="${m.meeting_id}">
+            <td>
+                <strong>${m.meeting_name}</strong>
+                ${m.description ? `<br><small class="text-muted">${m.description}</small>` : ''}
+            </td>
+            <td>${m.meeting_date}</td>
+            <td>${m.start_time || '-'} - ${m.end_time || '-'}</td>
+            <td>
+                <span class="badge badge-custom ${getStatusClass(m.status)}">
+                    ${getStatusText(m.status)}
+                </span>
+            </td>
+            <td>
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-info" onclick="viewDetails(${m.meeting_id})" 
+                            title="ดูรายละเอียด">
+                        ดู
+                    </button>
+                    ${m.status === 'completed' && !m.has_transcription ? `
+                        <button class="btn btn-primary" onclick="openTranscribeModal(${m.meeting_id})"
+                                title="ถอดเสียง">
+                            ถอดเสียง
+                        </button>
+                    ` : ''}
+                    ${m.has_transcription ? `
+                        <button class="btn btn-warning" onclick="deleteTranscription(${m.meeting_id})"
+                                title="ลบถอดเสียง">
+                            ลบถอดเสียง
+                        </button>
+                    ` : ''}
+                    <button class="btn btn-danger" onclick="deleteMeeting(${m.meeting_id})"
+                            title="ลบการประชุม">
+                        ลบ
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+    }
+
+    // Search meetings
+    function searchMeetings() {
+        const search = document.getElementById('searchInput').value;
+        const status = document.getElementById('statusFilter').value;
+        loadMeetings(search, status);
+    }
+
+    // Filter by status
+    function filterByStatus() {
+        searchMeetings();
+    }
+
+    // Refresh meetings
+    function refreshMeetings() {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('statusFilter').value = '';
+        loadMeetings();
+    }
+
+    // Load Attendance Summary
+    async function loadAttendanceSummary(meetingId) {
+        console.log('Loading attendance for meeting:', meetingId);
+        const summaryDiv = document.getElementById('attendanceSummary_Manage');
+        const listBody = document.getElementById('attendanceList_Manage');
+
+        console.log('Elements found:', { summaryDiv, listBody });
+
+        // Check if elements exist (they might not be in DOM yet if tab isn't active/rendered)
+        if (!summaryDiv || !listBody) {
+            console.error('Attendance elements not found in DOM');
+            return;
+        }
+
+        summaryDiv.innerHTML = '<div class="text-center"><div class="spinner-border text-primary" role="status"></div></div>';
+        listBody.innerHTML = ''; // This clears the 'Loading...' text if it was there
+
+        try {
+            console.log('Fetching attendance API...');
+            const response = await fetch(`/api/user/meetings/${meetingId}/attendance`);
+            console.log('Response received, status:', response.status);
+
+            const data = await response.json();
+
+            if (data.success) {
+                try {
+                    const s = data.summary;
+
+                    summaryDiv.innerHTML = `
+                        <div class="alert alert-light border">
+                            <div class="row text-center">
+                                <div class="col-3"><strong>ทั้งหมด:</strong> ${s.total}</div>
+                                <div class="col-3"><span class="text-success">✅ มา: ${s.present}</span></div>
+                                <div class="col-3"><span class="text-danger">❌ ขาด: ${s.absent}</span></div>
+                                <div class="col-3"><span class="text-muted">⚪ ไม่ได้เช็ค: ${s.not_started}</span></div>
+                            </div>
+                        </div>
+                    `;
+
+                    if (data.participants && data.participants.length > 0) {
+                        listBody.innerHTML = data.participants.map((p, index) => {
+                            return `
+                            <tr>
+                                <td>${p.participant_name || '-'}</td>
+                                <td><span class="badge bg-secondary">${p.role || 'สมาชิก'}</span></td>
+                                <td>
+                                    ${p.status === 'present' ? '<span class="badge bg-success">มา</span>' :
+                                    p.status === 'absent' ? '<span class="badge bg-danger">ขาด</span>' :
+                                        '<span class="badge bg-light text-dark">ยังไม่เช็ค</span>'}
+                                </td>
+                            </tr>
+                        `}).join('');
+                    } else {
+                        listBody.innerHTML = '<tr><td colspan="3" class="text-center text-muted">ไม่มีข้อมูลผู้เข้าร่วม</td></tr>';
+                    }
+                } catch (renderError) {
+                    console.error('Error rendering attendance:', renderError);
+                    summaryDiv.innerHTML += `<div class="text-danger small">Error rendering data: ${renderError.message}</div>`;
+                }
+            } else {
+                summaryDiv.innerHTML = `<div class="alert alert-warning">ไม่พบข้อมูลผู้เข้าร่วม (เลือก "เช็คผู้เข้าร่วม" ในหน้าบันทึกเพื่อสร้างข้อมูล)</div>`;
+                listBody.innerHTML = '';
+            }
+        } catch (error) {
+            console.error('Error loading attendance:', error);
+            summaryDiv.innerHTML = `<div class="text-danger">เกิดข้อผิดพลาดในการโหลดข้อมูล</div>`;
+        }
+    }
+
+    // View details  
+    async function viewDetails(meetingId) {
+        try {
+            const response = await fetch(`/api/user/meetings/${meetingId}`);
+            const data = await response.json();
+
+            console.log('API Response:', data);
+
+            if (response.ok && data.meeting) {
+                const m = data.meeting;
+                const hasTranscriptions = m.transcriptions && m.transcriptions.length > 0;
+
+                // Build tabs navigation
+                let html = `
+                <ul class="nav nav-tabs" id="meetingTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="info-tab" data-bs-toggle="tab" data-bs-target="#info-content" type="button">ข้อมูลการประชุม</button>
+                    </li>`;
+
+                if (hasTranscriptions) {
+                    html += `
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="transcript-tab" data-bs-toggle="tab" data-bs-target="#transcript-content" type="button">ผลการถอดเสียง (${m.transcriptions.length})</button>
+                    </li>`;
+                }
+
+                // Add Participants Tab
+                html += `
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="participants-tab" data-bs-toggle="tab" data-bs-target="#participants-content" type="button" onclick="loadAttendanceSummary(${m.meeting_id})">ผู้เข้าร่วม</button>
+                    </li>
+                </ul>
+                
+                <div class="tab-content mt-3">
+                    <div class="tab-pane fade show active" id="info-content" role="tabpanel">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>ชื่อการประชุม:</strong> ${m.meeting_name}</p>
+                                <p><strong>วันที่:</strong> ${m.meeting_date}</p>
+                                <p><strong>สถานที่:</strong> ${m.meeting_location || '-'}</p>
+                                <p><strong>เวลาเริ่ม:</strong> ${m.start_time || '-'}</p>
+                                <p><strong>เวลาสิ้นสุด:</strong> ${m.end_time || '-'}</p>
+                                <p><strong>เวลารวม:</strong> ${m.totaltime || '-'}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>สถานะ:</strong> <span class="badge ${getStatusClass(m.status)}">${getStatusText(m.status)}</span></p>
+                                <p><strong>รายละเอียด:</strong> ${m.description || '-'}</p>
+            
+                    <!-- Participants Tab -->
+                    <div class="tab-pane fade" id="participants" role="tabpanel">
+                        <div id="attendanceSummary" class="mb-3 mt-3"></div>
+                        <div class="table-responsive">
+                            <table class="table table-custom">
+                                <thead>
+                                    <tr>
+                                        <th>ชื่อ</th>
+                                        <th>ตำแหน่ง</th>
+                                        <th>สถานะ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="attendanceList">
+                                    <tr><td colspan="3" class="text-center">กำลังโหลด...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                        </div>
+                        <hr>
+                        <h6>ผู้เข้าร่วม (${m.participants.length} คน)</h6>
+                        <ul>
+                            ${m.participants.map(p => `<li>${p.participant_name} - ${p.channel_name || 'ไม่ระบุ channel'}</li>`).join('')}
+                        </ul>
+                    </div>`;
+
+                if (hasTranscriptions) {
+                    html += `
+                    <div class="tab-pane fade" id="transcript-content" role="tabpanel">
+                        <!-- Search and Export -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="transcriptSearch" 
+                                           placeholder="🔍 ค้นหาในการถอดเสียง...">
+                                    <button class="btn btn-outline-secondary" type="button" 
+                                            onclick="clearTranscriptSearch()">❌</button>
+                                </div>
+                                <div id="searchResults" class="mt-2 text-muted small"></div>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown">
+                                        📥 Export
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><a class="dropdown-item" href="/api/user/meetings/${meetingId}/export_pdf">📄 PDF</a></li>
+                                        <li><a class="dropdown-item" href="/api/user/meetings/${meetingId}/export_docx">📘 Word (.docx)</a></li>
+                                        <li><a class="dropdown-item" href="/api/user/meetings/${meetingId}/export_txt">📝 Text (.txt)</a></li>
+                                        <li><a class="dropdown-item" href="/api/user/meetings/${meetingId}/export_srt">🎬 Subtitle (.srt)</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" href="/api/user/meetings/${meetingId}/download_json">💾 JSON</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="transcriptionList" style="max-height: 400px; overflow-y: auto;">`;
+
+                    m.transcriptions.forEach((t, index) => {
+                        const speakerName = t.speaker_name || 'ไม่ระบุ';
+                        const timeRange = (t.start_time && t.end_time) ? `${t.start_time} - ${t.end_time}` : '';
+                        const bgClass = index % 2 === 0 ? 'bg-light' : '';
+                        const textContent = t.content || t.text || '-';
+
+                        html += `
+                        <div class="card mb-2 ${bgClass} transcription-item" 
+                             data-text="${textContent.toLowerCase()}"
+                             data-voice-id="${t.voice_id || 0}">
+                            <div class="card-body py-2">
+                                <div class="d-flex justify-content-between align-items-start mb-1">
+                                    <strong class="text-primary">${speakerName}</strong>
+                                    <div>
+                                        ${timeRange ? `<small class="text-muted me-2">${timeRange}</small>` : ''}
+                                        <button class="btn btn-sm btn-outline-primary btn-edit-trans" 
+                                                onclick="openEditModal(${t.voice_id || 0}, '${speakerName.replace(/'/g, "\\'")}', '${t.start_time || ''}', '${t.end_time || ''}', \`${textContent.replace(/`/g, '').replace(/\$/g, '').replace(/'/g, "\\'")}\`, ${meetingId})" 
+                                                title="แก้ไข">
+                                            ✏️
+                                        </button>
+                                    </div>
+                                </div>
+                                <p class="mb-0 transcription-text">${textContent}</p>
+                            </div>
+                        </div>`;
+                    });
+
+                    html += `
+                        </div>
+                    </div>`; // Close transcript list and tab-pane
+                }
+
+                // Add Participants Tab Content Pane
+                html += `
+                    <div class="tab-pane fade" id="participants-content" role="tabpanel">
+                        <div id="attendanceSummary_Manage" class="mb-3 mt-3"></div>
+                        <div class="table-responsive">
+                            <table class="table table-custom">
+                                <thead>
+                                    <tr>
+                                        <th>ชื่อ</th>
+                                        <th>ตำแหน่ง</th>
+                                        <th>สถานะ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="attendanceList_Manage">
+                                    <tr><td colspan="3" class="text-center">กำลังโหลด...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>`; // Close tab-content
+
+                document.getElementById('meetingDetails').innerHTML = html;
+                detailsModal.show();
+
+                // Initialize search after modal is shown
+                if (hasTranscriptions) {
+                    setTimeout(() => initTranscriptionSearch(meetingId), 300);
+                }
+            } else {
+                console.error('Invalid response:', data);
+                showAlert('ไม่พบข้อมูลการประชุม', 'danger');
+            }
+        } catch (error) {
+            console.error('Error loading meeting details:', error);
+            showAlert('เกิดข้อผิดพลาดในการโหลดข้อมูล', 'danger');
+        }
+    }
+
+    // Load models
+    async function loadModels() {
+        try {
+            const response = await fetch('/api/user/models/downloaded');
+            const data = await response.json();
+
+            console.log('Models loaded:', data);
+
+            const select = document.getElementById('modelSelect');
+            if (!select) {
+                console.error('modelSelect element not found!');
+                return;
+            }
+
+            if (data.models && data.models.length > 0) {
+                select.innerHTML = data.models.map(m => `
+                    <option value="${m.name}">${m.display_name}</option>
+                `).join('');
+
+                console.log('Populated modelSelect with', data.models.length, 'models');
+                console.log('First model selected:', select.value);
+            } else {
+                select.innerHTML = '<option value="">ไม่มีโมเดลที่ดาวน์โหลดแล้ว - กรุณาดาวน์โหลดผ่าน Admin</option>';
+                console.warn('No models available');
+            }
+        } catch (error) {
+            console.error('Error loading models:', error);
+            const select = document.getElementById('modelSelect');
+            if (select) {
+                select.innerHTML = '<option value="">เกิดข้อผิดพลาดในการโหลดโมเดล</option>';
+            }
+        }
+    }
+
+    // Open transcribe modal
+    async function openTranscribeModal(meetingId) {
+        document.getElementById('transcribeMeetingId').value = meetingId;
+
+        // Load models when opening modal
+        await loadModels();
+
+        transcribeModal.show();
+    }
+
+    // Start transcription
+    async function startTranscription() {
+        const meetingId = document.getElementById('transcribeMeetingId').value;
+        const model = document.getElementById('modelSelect').value;
+        const language = document.getElementById('languageSelect').value;
+
+        if (!model) {
+            showAlert('กรุณาเลือกโมเดล', 'warning');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/user/meetings/${meetingId}/transcribe`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ model_used: model, language: language })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showAlert('เริ่มถอดเสียงแล้ว! กรุณารอสักครู่...', 'success');
+                transcribeModal.hide();
+
+                // Poll for transcription status
+                if (data.job_id) {
+                    // No need to poll individually, the global poller will pick it up
+                }
+
+                // Reload meetings after a delay
+                setTimeout(() => {
+                    loadMeetings();
+                }, 3000);
+            } else {
+                showAlert(data.message || 'เกิดข้อผิดพลาด', 'danger');
+            }
+        } catch (error) {
+            console.error('Error starting transcription:', error);
+            showAlert('ไม่สามารถเริ่มถอดเสียงได้', 'danger');
+        }
+    }
+
+    // Export PDF
+    async function exportPDF(meetingId) {
+        try {
+            showAlert('กำลัง Export PDF...', 'info');
+
+            const response = await fetch(`/api/user/meetings/${meetingId}/export_pdf`);
+
+            if (response.ok) {
+                // Download PDF
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `meeting_${meetingId}.pdf`;
+                a.click();
+
+                showAlert('Export PDF สำเร็จ', 'success');
+            } else {
+                showAlert('ยังไม่ได้พัฒนาฟีเจอร์นี้', 'info');
+            }
+        } catch (error) {
+            showAlert('เกิดข้อผิดพลาด', 'danger');
+        }
+    }
+
+    // Delete transcription
+    async function deleteTranscription(meetingId) {
+        if (!confirm('ต้องการลบถอดเสียงหรือไม่?')) return;
+
+        try {
+            const response = await fetch(`/api/user/meetings/${meetingId}/transcription`, {
+                method: 'DELETE'
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showAlert('ลบถอดเสียงสำเร็จ', 'success');
+                loadMeetings();
+            }
+        } catch (error) {
+            showAlert('เกิดข้อผิดพลาด', 'danger');
+        }
+    }
+
+    // Delete meeting
+    async function deleteMeeting(meetingId) {
+        if (!confirm('ต้องการลบการประชุมนี้หรือไม่? ข้อมูลทั้งหมดจะถูกลบ')) return;
+
+        try {
+            const response = await fetch(`/api/user/meetings/${meetingId}`, {
+                method: 'DELETE'
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showAlert('ลบการประชุมสำเร็จ', 'success');
+                loadMeetings();
+            }
+        } catch (error) {
+            showAlert('เกิดข้อผิดพลาด', 'danger');
+        }
+    }
+
+    // Helper functions
+    function getStatusClass(status) {
+        const classes = {
+            'registered': 'bg-info',
+            'recording': 'bg-danger',
+            'paused': 'bg-warning',
+            'completed': 'bg-success',
+            'transcribed': 'bg-primary'
+        };
+        return classes[status] || 'bg-secondary';
+    }
+
+    function getStatusText(status) {
+        const texts = {
+            'registered': 'ลงทะเบียนแล้ว',
+            'recording': 'กำลังบันทึก',
+            'paused': 'หยุดชั่วคราว',
+            'completed': 'เสร็จสิ้น',
+            'transcribed': 'ถอดเสียงแล้ว'
+        };
+        return texts[status] || status;
+    }
+
+    // Clear all stuck transcription jobs
+    async function clearAllTranscriptionJobs() {
+        if (!confirm('ต้องการยกเลิกงานถอดเสียงที่ค้างอยู่ทั้งหมดหรือไม่?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/user/transcription/jobs/clear', {
+                method: 'POST'
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showToast(data.message, 'success');
+                loadMeetings();
+            } else {
+                showToast(data.message || 'เกิดข้อผิดพลาด', 'danger');
+            }
+        } catch (error) {
+            console.error('Error clearing jobs:', error);
+            showToast('เกิดข้อผิดพลาดในการเคลียร์งาน', 'danger');
+        }
+    }
+
+    // Edit Transcription Functions
+    let currentEditMeetingId = null;
+
+    function openEditModal(voiceId, speaker, startTime, endTime, text, meetingId) {
+        document.getElementById('editVoiceId').value = voiceId;
+        document.getElementById('editMeetingId').value = meetingId;
+        document.getElementById('editSpeaker').value = speaker;
+        document.getElementById('editStart').value = startTime;
+        document.getElementById('editEnd').value = endTime;
+        document.getElementById('editContent').value = text;
+        currentEditMeetingId = meetingId;
+
+        editModal.show();
+    }
+
+    async function saveEdit() {
+        const voiceId = document.getElementById('editVoiceId').value;
+        const speaker = document.getElementById('editSpeaker').value.trim();
+        const startTime = document.getElementById('editStart').value.trim();
+        const endTime = document.getElementById('editEnd').value.trim();
+        const text = document.getElementById('editContent').value.trim();
+
+        if (!text) {
+            showToast('กรุณากรอกเนื้อหา', 'warning');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/user/transcriptions/${voiceId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    speaker_name: speaker,
+                    text: text,
+                    start_time: startTime,
+                    end_time: endTime
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showToast('✅ บันทึกสำเร็จ', 'success');
+                editModal.hide();
+
+                // Reload meeting details
+                if (currentEditMeetingId) {
+                    setTimeout(() => viewDetails(currentEditMeetingId), 500);
+                }
+            } else {
+                showToast(data.message || 'เกิดข้อผิดพลาด', 'danger');
+            }
+        } catch (error) {
+            console.error('Error saving:', error);
+            showToast('เกิดข้อผิดพลาดในการบันทึก', 'danger');
+        }
+    }
+
+    // ✅ Transcription Polling System
+    function startTranscriptionPolling() {
+        // Poll every 5 seconds
+        transcriptionPolling = setInterval(checkActiveJobs, 5000);
+        // Also check immediately
+        checkActiveJobs();
+    }
+
+    async function checkActiveJobs() {
+        try {
+            const response = await fetch('/api/user/transcription/jobs/active');
+            const data = await response.json();
+
+            if (data.success && data.jobs && data.jobs.length > 0) {
+                for (const job of data.jobs) {
+                    updateJobUI(job);
+                }
+                // รีเซ็ต timer ถ้ามี jobs
+                window.lastActiveJobTime = null;
+            } else {
+                // No active jobs - clear all badges
+                clearAllTranscriptionBadges();
+
+                // ✅ หยุด polling ถ้าไม่มี active jobs นาน 30 วิ
+                if (!window.lastActiveJobTime) {
+                    window.lastActiveJobTime = Date.now();
+                } else if (Date.now() - window.lastActiveJobTime > 30000) {
+                    // ไม่มี jobs มา 30 วิแล้ว → หยุด polling
+                    if (transcriptionPolling) {
+                        clearInterval(transcriptionPolling);
+                        transcriptionPolling = null;
+                        console.log('[Polling] Stopped - no active jobs for 30s');
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Polling error:', error);
+        }
+    }
+
+    function updateJobUI(job) {
+        const meetingCard = document.querySelector(`tr[data-meeting-id="${job.meeting_id}"]`);
+        if (!meetingCard) return;
+
+        let badge = meetingCard.querySelector('.transcription-status-badge');
+
+        // Create badge if doesn't exist
+        if (!badge) {
+            badge = document.createElement('span');
+            badge.className = 'transcription-status-badge badge ms-2';
+            const statusCell = meetingCard.querySelector('td:nth-child(4)'); // Assuming 4th td is status
+            if (statusCell) {
+                statusCell.appendChild(badge);
+            }
+        }
+
+        if (job.status === 'completed') {
+            // Check if we haven't notified about this job yet
+            if (!completedJobs.has(job.job_id)) {
+                completedJobs.add(job.job_id);
+                showCompletionNotification(job);
+
+                // Reload meeting data
+                loadMeetings();
+            }
+
+            // Show completed badge briefly
+            badge.textContent = '✅ เสร็จแล้ว';
+            badge.className = 'transcription-status-badge badge bg-success ms-2';
+
+            // Remove badge after 5 seconds
+            setTimeout(() => {
+                badge.remove();
+            }, 5000);
+
+        } else if (job.status === 'processing') {
+            const progress = job.progress || 0;
+            badge.textContent = `⏳ กำลังถอดเสียง... ${progress}%`;
+            badge.className = 'transcription-status-badge badge bg-warning ms-2';
+        } else if (job.status === 'pending') {
+            badge.textContent = '⏸️ รอดำเนินการ...';
+            badge.className = 'transcription-status-badge badge bg-secondary ms-2';
+        } else if (job.status === 'failed') {
+            badge.textContent = '❌ ล้มเหลว';
+            badge.className = 'transcription-status-badge badge bg-danger ms-2';
+        }
+    }
+
+    function clearAllTranscriptionBadges() {
+        document.querySelectorAll('.transcription-status-badge').forEach(badge => {
+            // Only remove if it's a processing/pending badge, keep completed ones
+            if (badge.textContent.includes('⏳') || badge.textContent.includes('⏸️')) {
+                badge.remove();
+            }
+        });
+    }
+
+    function showCompletionNotification(job) {
+        // Toast notification
+        Swal.fire({
+            icon: 'success',
+            title: '🎉 ถอดเสียงเสร็จแล้ว!',
+            html: `<strong>${job.meeting_name}</strong><br><small>คลิกดูรายละเอียดได้เลย</small>`,
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 5000,
+            timerProgressBar: true,
+            showCloseButton: true
+        });
+
+        // ✅ รีเฟรชข้อมูล meeting
+        loadMeetings();
+
+        // ✅ รีเฟรชทั้งหน้าหลัง 3 วิ
+        setTimeout(() => {
+            window.location.reload();
+        }, 3000);
+
+        // Browser notification (if permitted)
+        if (Notification.permission === 'granted') {
+            const notification = new Notification('ถอดเสียงเสร็จแล้ว', {
+                body: job.meeting_name,
+                icon: '/static/img/icon.png',
+                badge: '/static/img/badge.png',
+                tag: `transcription-${job.job_id}`
+            });
+
+            notification.onclick = function () {
+                window.focus();
+                notification.close();
+            };
+        } else if (Notification.permission === 'default') {
+            // Request permission
+            Notification.requestPermission();
+        }
+    }
+
+    // Show toast notification (using SweetAlert2 for consistency)
+    function showToast(message, type = 'info') {
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            icon: type,
+            title: message
+        });
+    }
+</script>
+{% endblock %}

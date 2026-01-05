@@ -1,0 +1,365 @@
+{% extends "admin/layout.html" %}
+
+{% block title %}เชื่อมต่อ{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Channel Mapping</h1>
+    <p class="text-muted-custom">กำหนดช่องเสียงและเชื่อมต่อกับอุปกรณ์</p>
+</div>
+
+<!-- Alert Container -->
+<div id="alertContainer"></div>
+
+<!-- Add Channel Form -->
+<div class="card card-custom">
+    <div class="card-header">
+        <h5 class="mb-0">เพิ่ม Channel ใหม่</h5>
+    </div>
+    <div class="card-body">
+        <form id="channelForm" onsubmit="addChannel(event)">
+            <div class="row">
+                <div class="col-md-3">
+                    <label class="form-label">ชื่อ Channel</label>
+                    <input type="text" class="form-control form-control-custom" id="channelName" required
+                        placeholder="เช่น ไมค์ประธาน">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">เลือกอุปกรณ์</label>
+                    <select class="form-select form-control-custom" id="deviceSelect" required
+                        onchange="updateChannelOptions()">
+                        <option value="">-- เลือกอุปกรณ์ --</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Channel Index</label>
+                    <select class="form-select form-control-custom" id="channelIndexSelect" required>
+                        <option value="">-- เลือก --</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="submit" class="btn btn-primary-custom btn-custom w-100">
+                        เพิ่ม
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Channels Table -->
+<div class="card card-custom">
+    <div class="card-header">
+        <h5 class="mb-0">รายการ Channels</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-custom">
+                <thead>
+                    <tr>
+                        <th>ชื่อ Channel</th>
+                        <th>อุปกรณ์</th>
+                        <th>Device Index</th>
+                        <th>Channel Index</th>
+                        <th>สถานะ</th>
+                        <th>จัดการ</th>
+                    </tr>
+                </thead>
+                <tbody id="channelsTableBody">
+                    <tr>
+                        <td colspan="6" class="text-center text-muted-custom">
+                            กำลังโหลด...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">แก้ไข Channel</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editChannelId">
+                <div class="mb-3">
+                    <label class="form-label">ชื่อ Channel</label>
+                    <input type="text" class="form-control form-control-custom" id="editChannelName" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">เลือกอุปกรณ์</label>
+                    <select class="form-select form-control-custom" id="editDeviceSelect"
+                        onchange="updateEditChannelOptions()" required>
+                        <option value="">-- เลือกอุปกรณ์ --</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Channel Index</label>
+                    <select class="form-select form-control-custom" id="editChannelIndexSelect" required>
+                        <option value="">-- เลือก --</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+                <button type="button" class="btn btn-primary-custom btn-custom" onclick="saveEdit()">บันทึก</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let devices = [];
+    let channels = [];
+    let editModal;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        editModal = new bootstrap.Modal(document.getElementById('editModal'));
+        loadDevices();
+        loadChannels();
+    });
+
+    // Load devices
+    async function loadDevices() {
+        try {
+            const response = await fetch('/api/admin/devices');
+            const data = await response.json();
+            devices = data.devices;
+            renderDeviceSelect();
+        } catch (error) {
+            console.error('Error loading devices:', error);
+        }
+    }
+
+    // Load channels
+    async function loadChannels() {
+        try {
+            const response = await fetch('/api/admin/channels');
+            const data = await response.json();
+            channels = data.channels;
+            renderChannels();
+        } catch (error) {
+            console.error('Error loading channels:', error);
+        }
+    }
+
+    // Render device select
+    function renderDeviceSelect() {
+        const select = document.getElementById('deviceSelect');
+        select.innerHTML = '<option value="">-- เลือกอุปกรณ์ --</option>' +
+            devices.map(d => `
+            <option value="${d.id}" 
+                    data-index="${d.device_index}" 
+                    data-name="${d.name}"
+                    data-max="${d.max_input_channels}">
+                ${d.name}
+            </option>
+        `).join('');
+    }
+
+    // Update channel options when device is selected
+    function updateChannelOptions() {
+        const select = document.getElementById('deviceSelect');
+        const channelSelect = document.getElementById('channelIndexSelect');
+        const option = select.options[select.selectedIndex];
+
+        if (!option || !option.value) {
+            channelSelect.innerHTML = '<option value="">-- เลือก --</option>';
+            return;
+        }
+
+        const maxChannels = parseInt(option.dataset.max);
+        channelSelect.innerHTML = '';
+
+        for (let i = 0; i < maxChannels; i++) {
+            channelSelect.innerHTML += `<option value="${i}">Channel ${i}</option>`;
+        }
+    }
+
+    // Add channel
+    async function addChannel(event) {
+        event.preventDefault();
+
+        const name = document.getElementById('channelName').value;
+        const deviceSelect = document.getElementById('deviceSelect');
+        const option = deviceSelect.options[deviceSelect.selectedIndex];
+        const channelIndex = document.getElementById('channelIndexSelect').value;
+
+        try {
+            const response = await fetch('/api/admin/channels', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: name,
+                    device_name: option.dataset.name,
+                    device_index: parseInt(option.dataset.index),
+                    channel_index: parseInt(channelIndex)
+                })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                showAlert('เพิ่ม Channel สำเร็จ', 'success');
+                document.getElementById('channelForm').reset();
+                loadChannels();
+            } else {
+                showAlert(data.message || 'เกิดข้อผิดพลาด', 'danger');
+            }
+        } catch (error) {
+            showAlert('เกิดข้อผิดพลาด', 'danger');
+        }
+    }
+
+    // Render channels table
+    function renderChannels() {
+        const tbody = document.getElementById('channelsTableBody');
+
+        if (channels.length === 0) {
+            tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center text-muted-custom">
+                    ไม่มีข้อมูล
+                </td>
+            </tr>
+        `;
+            return;
+        }
+
+        tbody.innerHTML = channels.map(ch => `
+        <tr>
+            <td>${ch.name}</td>
+            <td>${ch.device_name}</td>
+            <td>${ch.device_index}</td>
+            <td>${ch.channel_index}</td>
+            <td>
+                <span class="badge badge-custom ${ch.is_active ? 'bg-success' : 'bg-secondary'}">
+                    ${ch.is_active ? 'ใช้งาน' : 'ปิดใช้'}
+                </span>
+            </td>
+            <td>
+                <button class="btn btn-sm btn-primary" onclick="editChannel(${ch.id}, '${ch.name}')">
+                    แก้ไข
+                </button>
+                <button class="btn btn-sm btn-danger" onclick="deleteChannel(${ch.id})">
+                    ลบ
+                </button>
+            </td>
+        </tr>
+    `).join('');
+    }
+
+    // Edit channel
+    function editChannel(id, name) {
+        const channel = channels.find(ch => ch.id === id);
+        if (!channel) return;
+
+        document.getElementById('editChannelId').value = id;
+        document.getElementById('editChannelName').value = name;
+
+        // Populate device select
+        const editDeviceSelect = document.getElementById('editDeviceSelect');
+        editDeviceSelect.innerHTML = '<option value="">-- เลือกอุปกรณ์ --</option>' +
+            devices.map(d => `
+            <option value="${d.id}" 
+                    data-index="${d.device_index}" 
+                    data-name="${d.name}"
+                    data-max="${d.max_input_channels}"
+                    ${d.device_index === channel.device_index ? 'selected' : ''}>
+                ${d.name}
+            </option>
+        `).join('');
+
+        // Update channel options based on selected device
+        updateEditChannelOptions();
+
+        // Set current channel index
+        document.getElementById('editChannelIndexSelect').value = channel.channel_index;
+
+        editModal.show();
+    }
+
+    // Update edit channel options when device is changed
+    function updateEditChannelOptions() {
+        const select = document.getElementById('editDeviceSelect');
+        const channelSelect = document.getElementById('editChannelIndexSelect');
+        const option = select.options[select.selectedIndex];
+
+        if (!option || !option.value) {
+            channelSelect.innerHTML = '<option value="">-- เลือก --</option>';
+            return;
+        }
+
+        const maxChannels = parseInt(option.dataset.max);
+        channelSelect.innerHTML = '';
+
+        for (let i = 0; i < maxChannels; i++) {
+            channelSelect.innerHTML += `<option value="${i}">Channel ${i}</option>`;
+        }
+    }
+
+    // Save edit
+    async function saveEdit() {
+        const id = document.getElementById('editChannelId').value;
+        const name = document.getElementById('editChannelName').value;
+        const deviceSelect = document.getElementById('editDeviceSelect');
+        const option = deviceSelect.options[deviceSelect.selectedIndex];
+        const channelIndex = document.getElementById('editChannelIndexSelect').value;
+
+        if (!option || !option.value || channelIndex === '') {
+            showAlert('กรุณาเลือกอุปกรณ์และ channel', 'warning');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/admin/channels/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name,
+                    device_name: option.dataset.name,
+                    device_index: parseInt(option.dataset.index),
+                    channel_index: parseInt(channelIndex)
+                })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                showAlert('แก้ไขสำเร็จ', 'success');
+                editModal.hide();
+                loadChannels();
+            } else {
+                showAlert(data.message || 'เกิดข้อผิดพลาด', 'danger');
+            }
+        } catch (error) {
+            showAlert('เกิดข้อผิดพลาด', 'danger');
+        }
+    }
+
+    // Delete channel
+    async function deleteChannel(id) {
+        if (!confirm('ต้องการลบ Channel นี้หรือไม่?')) return;
+
+        try {
+            const response = await fetch(`/api/admin/channels/${id}`, {
+                method: 'DELETE'
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                showAlert('ลบสำเร็จ', 'success');
+                loadChannels();
+            }
+        } catch (error) {
+            showAlert('เกิดข้อผิดพลาด', 'danger');
+        }
+    }
+</script>
+{% endblock %}

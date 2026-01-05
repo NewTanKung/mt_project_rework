@@ -1,0 +1,29 @@
+<!-- Attendance Check Modal -->
+<div class="modal fade" id="attendanceModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">📋 เช็คผู้เข้าร่วมประชุม</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info mb-3">
+                    <small>
+                        <strong>วิธีใช้:</strong> คลิกปุ่ม <span class="badge bg-danger">❌ ขาด</span>
+                        เพื่อทำเครื่องหมายว่าขาด
+                        (ผู้ที่แสดง <span class="badge bg-success">✅ มา</span> จะถือว่าเข้าร่วมประชุม)
+                    </small>
+                </div>
+                <div id="attendanceGrid" class="row g-3">
+                    <div class="col-12 text-center text-muted">กำลังโหลด...</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+                <button type="button" class="btn btn-primary" onclick="saveAttendance()">
+                    <i class="bi bi-check-lg"></i> บันทึก
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,48 @@
+/* Attendance Modal Styles */
+
+.attendance-card {
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 1rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.attendance-card.present {
+    border-color: #28a745;
+    background: linear-gradient(to right, #f8fff9, white);
+}
+
+.attendance-card.absent {
+    border-color: #dc3545;
+    background: linear-gradient(to right, #fff5f5, white);
+}
+
+.attendance-card:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.btn-toggle {
+    min-width: 80px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.btn-toggle:active {
+    transform: scale(0.95);
+}
+
+#attendanceGrid .col-md-6,
+#attendanceGrid .col-lg-4 {
+    margin-bottom: 1rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    #attendanceGrid .col-md-6 {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+}

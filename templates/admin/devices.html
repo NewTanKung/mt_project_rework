@@ -1,0 +1,138 @@
+{% extends "admin/layout.html" %}
+
+{% block title %}อุปกรณ์{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>จัดการอุปกรณ์เสียง</h1>
+    <p class="text-muted-custom">ค้นหาและจัดการอุปกรณ์บันทึกเสียง</p>
+</div>
+
+<!-- Alert Container -->
+<div id="alertContainer"></div>
+
+<!-- Scan Button -->
+<div class="card card-custom">
+    <div class="card-body">
+        <button class="btn btn-primary-custom btn-custom" id="scanBtn" onclick="scanDevices()">
+            <span id="scanText">🔍 ค้นหาอุปกรณ์</span>
+            <span id="scanSpinner" class="spinner-custom d-none"></span>
+        </button>
+        <span class="text-muted-custom ms-3" id="scanStatus"></span>
+    </div>
+</div>
+
+<!-- Devices Table -->
+<div class="card card-custom">
+    <div class="card-header">
+        <h5 class="mb-0">รายการอุปกรณ์</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-custom">
+                <thead>
+                    <tr>
+                        <th>ชื่ออุปกรณ์</th>
+                        <th>Device Index</th>
+                        <th>Channels</th>
+                        <th>Host API</th>
+                    </tr>
+                </thead>
+                <tbody id="devicesTableBody">
+                    <tr>
+                        <td colspan="4" class="text-center text-muted-custom">
+                            กด "ค้นหาอุปกรณ์" เพื่อแสดงรายการ
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let devices = [];
+
+    // Load devices on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        loadDevices();
+    });
+
+    // Load devices from database
+    async function loadDevices() {
+        try {
+            const response = await fetch('/api/admin/devices');
+            const data = await response.json();
+            devices = data.devices;
+            renderDevices();
+        } catch (error) {
+            console.error('Error loading devices:', error);
+        }
+    }
+
+    // Scan for devices
+    async function scanDevices() {
+        const scanBtn = document.getElementById('scanBtn');
+        const scanText = document.getElementById('scanText');
+        const scanSpinner = document.getElementById('scanSpinner');
+        const scanStatus = document.getElementById('scanStatus');
+
+        // Disable button
+        scanBtn.disabled = true;
+        scanText.classList.add('d-none');
+        scanSpinner.classList.remove('d-none');
+        scanStatus.textContent = 'กำลังค้นหา...';
+
+        try {
+            const response = await fetch('/api/admin/devices/scan', {
+                method: 'POST'
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                showAlert(`พบอุปกรณ์ ${data.devices_found} รายการ`, 'success');
+                devices = data.devices;
+                renderDevices();
+                scanStatus.textContent = `พบ ${data.devices_found} รายการ`;
+            } else {
+                showAlert(data.message || 'เกิดข้อผิดพลาด', 'danger');
+                scanStatus.textContent = '';
+            }
+        } catch (error) {
+            showAlert('ไม่สามารถค้นหาอุปกรณ์ได้', 'danger');
+            scanStatus.textContent = '';
+        } finally {
+            scanBtn.disabled = false;
+            scanText.classList.remove('d-none');
+            scanSpinner.classList.add('d-none');
+        }
+    }
+
+    // Render devices table
+    function renderDevices() {
+        const tbody = document.getElementById('devicesTableBody');
+
+        if (devices.length === 0) {
+            tbody.innerHTML = `
+            <tr>
+                <td colspan="4" class="text-center text-muted-custom">
+                    ไม่พบอุปกรณ์ กด "ค้นหาอุปกรณ์" เพื่อค้นหา
+                </td>
+            </tr>
+        `;
+            return;
+        }
+
+        tbody.innerHTML = devices.map(device => `
+        <tr>
+            <td>${device.name}</td>
+            <td>${device.device_index}</td>
+            <td>${device.max_input_channels}</td>
+            <td>${device.host_api}</td>
+        </tr>
+    `).join('');
+    }
+</script>
+{% endblock %}

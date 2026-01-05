@@ -1,0 +1,378 @@
+{% extends "user/layout.html" %}
+
+{% block title %}ลงทะเบียนการประชุม{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>ลงทะเบียนการประชุม</h1>
+    <p class="text-muted-custom">สร้างการประชุมใหม่และเพิ่มผู้เข้าร่วม</p>
+</div>
+
+<!-- Alert Container -->
+<div id="alertContainer"></div>
+
+<!-- Meeting Form -->
+<div class="card card-custom">
+    <div class="card-header">
+        <h5 class="mb-0">ข้อมูลการประชุม</h5>
+    </div>
+    <div class="card-body">
+        <form id="meetingForm">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="meetingName" class="form-label">ชื่อการประชุม *</label>
+                    <input type="text" class="form-control form-control-custom" id="meetingName" required>
+                </div>
+
+                <div class="col-md-3 mb-3">
+                    <label for="meetingDate" class="form-label">วันที่ *</label>
+                    <input type="date" class="form-control form-control-custom" id="meetingDate" required>
+                </div>
+
+                <div class="col-md-3 mb-3">
+                    <label for="meetingLocation" class="form-label">สถานที่</label>
+                    <input type="text" class="form-control form-control-custom" id="meetingLocation">
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="description" class="form-label">รายละเอียด</label>
+                <textarea class="form-control form-control-custom" id="description" rows="2"></textarea>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Preset Selection -->
+<div class="card card-custom">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">ผู้เข้าร่วมการประชุม</h5>
+        <select class="form-select form-select-sm" style="width: auto;" id="presetSelect" onchange="loadPreset()">
+            <option value="">-- เลือก Preset --</option>
+        </select>
+    </div>
+    <div class="card-body">
+        <!-- Add Participant Form -->
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <input type="text" class="form-control form-control-custom" id="participantName"
+                    placeholder="ชื่อผู้เข้าร่วม">
+            </div>
+            <div class="col-md-3">
+                <input type="text" class="form-control form-control-custom" id="participantRole"
+                    placeholder="ตำแหน่ง (เช่น ประธาน, เลขา)">
+            </div>
+            <div class="col-md-3">
+                <select class="form-select form-control-custom" id="participantChannel">
+                    <option value="">-- เลือก Channel --</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-primary-custom btn-custom w-100" onclick="addParticipant()">
+                    เพิ่ม
+                </button>
+            </div>
+        </div>
+
+        <!-- Participants Table -->
+        <div class="table-responsive">
+            <table class="table table-custom">
+                <thead>
+                    <tr>
+                        <th>ชื่อ</th>
+                        <th>ตำแหน่ง</th>
+                        <th>Channel</th>
+                        <th style="width: 80px;">ลบ</th>
+                    </tr>
+                </thead>
+                <tbody id="participantsTableBody">
+                    <tr>
+                        <td colspan="4" class="text-center text-muted-custom">
+                            ยังไม่มีผู้เข้าร่วม
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Save Preset Option -->
+<div class="card card-custom">
+    <div class="card-body">
+        <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="savePresetCheck" onchange="togglePresetName()">
+            <label class="form-check-label" for="savePresetCheck">
+                บันทึกเป็น Preset
+            </label>
+        </div>
+
+        <div id="presetNameGroup" class="d-none">
+            <label for="presetName" class="form-label">ชื่อ Preset</label>
+            <input type="text" class="form-control form-control-custom" id="presetName" placeholder="ชื่อ Preset">
+        </div>
+    </div>
+</div>
+
+<!-- Action Buttons -->
+<div class="text-end">
+    <button class="btn btn-secondary btn-custom" onclick="resetForm()">
+        ล้างข้อมูล
+    </button>
+    <button class="btn btn-primary-custom btn-custom" onclick="saveMeeting()">
+        บันทึกการประชุม
+    </button>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let channels = [];
+    let presets = [];
+    let participants = [];
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadChannels();
+        loadPresets();
+        setDefaultDate();
+    });
+
+    // Set default date to today
+    function setDefaultDate() {
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('meetingDate').value = today;
+    }
+
+    // Load channels
+    async function loadChannels() {
+        try {
+            const response = await fetch('/api/user/channels');
+            const data = await response.json();
+            channels = data.channels;
+            renderChannelSelect();
+        } catch (error) {
+            console.error('Error loading channels:', error);
+        }
+    }
+
+    // Render channel dropdown
+    function renderChannelSelect() {
+        const select = document.getElementById('participantChannel');
+        select.innerHTML = '<option value="">-- เลือก Channel --</option>' +
+            channels.map(ch => `
+            <option value="${ch.id}" data-name="${ch.name}">
+                ${ch.name}
+            </option>
+        `).join('');
+    }
+
+    // Load presets
+    async function loadPresets() {
+        try {
+            const response = await fetch('/api/user/presets');
+            const data = await response.json();
+            presets = data.presets;
+            renderPresetSelect();
+        } catch (error) {
+            console.error('Error loading presets:', error);
+        }
+    }
+
+    // Render preset dropdown
+    function renderPresetSelect() {
+        const select = document.getElementById('presetSelect');
+        select.innerHTML = '<option value="">-- เลือก Preset --</option>' +
+            presets.map(p => `
+            <option value="${p.channel_preset_id}">
+                ${p.preset_name}
+            </option>
+        `).join('');
+    }
+
+    // Load preset members
+    function loadPreset() {
+        const select = document.getElementById('presetSelect');
+        const presetId = parseInt(select.value);
+
+        if (!presetId) {
+            participants = [];
+            renderParticipants();
+            return;
+        }
+
+        const preset = presets.find(p => p.channel_preset_id === presetId);
+        if (preset) {
+            participants = preset.members.map(m => ({
+                name: m.name,
+                role: m.role || 'สมาชิก',
+                channel_id: m.channel_id,
+                channel_name: m.channel_name
+            }));
+            renderParticipants();
+        }
+    }
+
+    // Add participant
+    function addParticipant() {
+        const name = document.getElementById('participantName').value.trim();
+        const role = document.getElementById('participantRole').value.trim() || 'สมาชิก';
+        const channelSelect = document.getElementById('participantChannel');
+        const channelId = parseInt(channelSelect.value);
+
+        if (!name) {
+            showAlert('กรุณากรอกชื่อผู้เข้าร่วม', 'warning');
+            return;
+        }
+
+        if (!channelId) {
+            showAlert('กรุณาเลือก Channel', 'warning');
+            return;
+        }
+
+        const channelOption = channelSelect.options[channelSelect.selectedIndex];
+        const channelName = channelOption.dataset.name;
+
+        // Check duplicate
+        if (participants.some(p => p.name === name)) {
+            showAlert('ชื่อนี้มีอยู่แล้ว', 'warning');
+            return;
+        }
+
+        participants.push({
+            name: name,
+            role: role,
+            channel_id: channelId,
+            channel_name: channelName
+        });
+
+        // Clear inputs
+        document.getElementById('participantName').value = '';
+        document.getElementById('participantRole').value = '';
+        document.getElementById('participantChannel').value = '';
+
+        renderParticipants();
+    }
+
+    // Remove participant
+    function removeParticipant(index) {
+        participants.splice(index, 1);
+        renderParticipants();
+    }
+
+    // Render participants table
+    function renderParticipants() {
+        const tbody = document.getElementById('participantsTableBody');
+
+        if (participants.length === 0) {
+            tbody.innerHTML = `
+            <tr>
+                <td colspan="4" class="text-center text-muted-custom">
+                    ยังไม่มีผู้เข้าร่วม
+                </td>
+            </tr>
+        `;
+            return;
+        }
+
+        tbody.innerHTML = participants.map((p, idx) => `
+        <tr>
+            <td>${p.name}</td>
+            <td><span class="badge bg-info">${p.role || 'สมาชิก'}</span></td>
+            <td>${p.channel_name || '-'}</td>
+            <td>
+                <button class="btn btn-sm btn-danger" onclick="removeParticipant(${idx})">
+                    ลบ
+                </button>
+            </td>
+        </tr>
+    `).join('');
+    }
+
+    // Toggle preset name input
+    function togglePresetName() {
+        const checked = document.getElementById('savePresetCheck').checked;
+        const group = document.getElementById('presetNameGroup');
+
+        if (checked) {
+            group.classList.remove('d-none');
+        } else {
+            group.classList.add('d-none');
+        }
+    }
+
+    // Save meeting
+    async function saveMeeting() {
+        const meetingName = document.getElementById('meetingName').value.trim();
+        const meetingDate = document.getElementById('meetingDate').value;
+        const meetingLocation = document.getElementById('meetingLocation').value.trim();
+        const description = document.getElementById('description').value.trim();
+
+        // Validation
+        if (!meetingName) {
+            showAlert('กรุณากรอกชื่อการประชุม', 'warning');
+            return;
+        }
+
+        if (!meetingDate) {
+            showAlert('กรุณาเลือกวันที่', 'warning');
+            return;
+        }
+
+        if (participants.length === 0) {
+            showAlert('กรุณาเพิ่มผู้เข้าร่วมอย่างน้อย 1 คน', 'warning');
+            return;
+        }
+
+        const savePreset = document.getElementById('savePresetCheck').checked;
+        const presetName = document.getElementById('presetName').value.trim();
+
+        if (savePreset && !presetName) {
+            showAlert('กรุณากรอกชื่อ Preset', 'warning');
+            return;
+        }
+
+        // Prepare data
+        const data = {
+            meeting_name: meetingName,
+            meeting_date: meetingDate,
+            meeting_location: meetingLocation,
+            description: description,
+            participants: participants,
+            save_preset: savePreset,
+            preset_name: presetName
+        };
+
+        try {
+            const response = await fetch('/api/user/meetings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                showAlert('บันทึกการประชุมสำเร็จ', 'success');
+                setTimeout(() => {
+                    window.location.href = '/user/recording';
+                }, 1500);
+            } else {
+                showAlert(result.message || 'เกิดข้อผิดพลาด', 'danger');
+            }
+        } catch (error) {
+            showAlert('ไม่สามารถบันทึกได้', 'danger');
+        }
+    }
+
+    // Reset form
+    function resetForm() {
+        document.getElementById('meetingForm').reset();
+        document.getElementById('presetSelect').value = '';
+        document.getElementById('savePresetCheck').checked = false;
+        document.getElementById('presetNameGroup').classList.add('d-none');
+        participants = [];
+        renderParticipants();
+        setDefaultDate();
+    }
+</script>
+{% endblock %}
