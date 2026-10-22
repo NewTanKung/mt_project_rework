@@ -4,27 +4,44 @@
 
 {% block content %}
 <div class="page-header">
-    <h1>จัดการโมเดล Whisper</h1>
-    <p class="text-muted-custom">ดาวน์โหลดและจัดการโมเดลสำหรับถอดเสียง</p>
+    <h1>
+        <svg class="svg-icon text-primary" viewBox="0 0 24 24" style="width: 2rem; height: 2rem;">
+            <rect x="4" y="4" width="16" height="16" rx="2" ry="2"/>
+            <rect x="9" y="9" width="6" height="6"/>
+            <line x1="9" y1="1" x2="9" y2="4"/>
+            <line x1="15" y1="1" x2="15" y2="4"/>
+            <line x1="9" y1="20" x2="9" y2="23"/>
+            <line x1="15" y1="20" x2="15" y2="23"/>
+            <line x1="20" y1="9" x2="23" y2="9"/>
+            <line x1="20" y1="14" x2="23" y2="14"/>
+            <line x1="1" y1="9" x2="4" y2="9"/>
+            <line x1="1" y1="14" x2="4" y2="14"/>
+        </svg>
+        จัดการโมเดล Faster-Whisper
+    </h1>
+    <p class="text-muted-custom">ดาวน์โหลด จัดการ และตรวจสอบสถานะโมเดล AI สำหรับถอดเสียงพูดภาษาไทยและภาษาอังกฤษแบบออฟไลน์</p>
 </div>
 
 <!-- Alert Container -->
 <div id="alertContainer"></div>
 
-<!-- Engine Selection -->
-<div class="card card-custom">
-    <div class="card-header">
-        <h5 class="mb-0">เลือก Transcription Engine</h5>
+<!-- Engine Selection Card -->
+<div class="card card-custom mb-4">
+    <div class="card-header d-flex align-items-center gap-2">
+        <svg class="svg-icon text-primary" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        <h5 class="mb-0">เครื่องมือถอดเสียง (Transcription Engine)</h5>
     </div>
     <div class="card-body">
         <div class="row">
             <div class="col-md-6">
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" name="engine" id="engineWhisper" value="whisper"
-                        checked>
+                <div class="form-check p-3 rounded-3 border bg-light d-flex align-items-start gap-3">
+                    <input class="form-check-input mt-1 ms-0" type="radio" name="engine" id="engineWhisper" value="whisper" checked>
                     <label class="form-check-label" for="engineWhisper">
-                        <strong>Whisper (OpenAI)</strong><br>
-                        <small class="text-muted-custom">โมเดลต้นฉบับจาก OpenAI</small>
+                        <div class="d-flex align-items-center gap-2">
+                            <strong>Faster-Whisper (CTranslate2)</strong>
+                            <span class="badge bg-success-subtle text-success border border-success-subtle small">แนะนำ</span>
+                        </div>
+                        <div class="text-muted-custom small mt-1">ประมวลผลเร็วขึ้น 4 เท่า ทำงานออฟไลน์สมบูรณ์แบบโดยไม่ต้องต่ออินเทอร์เน็ต</div>
                     </label>
                 </div>
             </div>
@@ -32,26 +49,50 @@
     </div>
 </div>
 
-<!-- Models List -->
-<div class="card card-custom">
-    <div class="card-header">
-        <h5 class="mb-0">รายการโมเดล</h5>
+<!-- Download Progress Card -->
+<div class="card card-custom mb-4 d-none" id="downloadProgress">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 d-flex align-items-center gap-2 text-primary">
+            <div class="spinner-border spinner-border-sm" role="status"></div>
+            ความคืบหน้าการดาวน์โหลดโมเดล
+        </h5>
+        <span class="badge bg-primary text-white" id="downloadModelName">กำลังดาวน์โหลด</span>
     </div>
     <div class="card-body">
+        <div class="progress progress-custom mb-2" style="height: 12px; border-radius: 6px; background-color: var(--slate-100);">
+            <div class="progress-bar progress-bar-custom bg-primary" id="progressBar" style="width: 0%; transition: width 0.3s ease;">0%</div>
+        </div>
+        <p class="mb-0 text-muted-custom small" id="downloadStatus">กำลังเริ่มดาวน์โหลด...</p>
+    </div>
+</div>
+
+<!-- Models List Card -->
+<div class="card card-custom mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 d-flex align-items-center gap-2">
+            <svg class="svg-icon text-primary" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+            รายการโมเดล Whisper
+        </h5>
+        <span class="badge bg-light text-slate-700 border" id="modelsCountBadge">0 โมเดล</span>
+    </div>
+    <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-custom">
+            <table class="table table-custom mb-0">
                 <thead>
                     <tr>
-                        <th>ชื่อโมเดล</th>
-                        <th>ขนาด</th>
-                        <th>คำอธิบาย</th>
+                        <th style="padding-left: 1.5rem;">ชื่อโมเดล</th>
+                        <th>ขนาดไฟล์</th>
+                        <th>คำอธิบาย & ความเหมาะสม</th>
                         <th>สถานะ</th>
-                        <th>จัดการ</th>
+                        <th style="padding-right: 1.5rem; text-align: right;">จัดการ</th>
                     </tr>
                 </thead>
                 <tbody id="modelsTableBody">
                     <tr>
-                        <td colspan="5" class="text-center">กำลังโหลด...</td>
+                        <td colspan="5" class="text-center text-muted-custom py-4">
+                            <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                            กำลังโหลดรายการโมเดล...
+                        </td>
                     </tr>
                 </tbody>
             </table>
@@ -59,33 +100,18 @@
     </div>
 </div>
 
-<!-- Download Progress -->
-<div class="card card-custom d-none" id="downloadProgress">
-    <div class="card-header">
-        <h5 class="mb-0">กำลังดาวน์โหลด</h5>
-    </div>
-    <div class="card-body">
-        <p><strong id="downloadModelName"></strong></p>
-        <div class="progress progress-custom">
-            <div class="progress-bar progress-bar-custom" id="progressBar" style="width: 0%">0%</div>
-        </div>
-        <p class="mt-2 text-muted-custom" id="downloadStatus"></p>
-    </div>
-</div>
-
 <!-- Info Card -->
 <div class="card card-custom">
-    <div class="card-header">
-        <h5 class="mb-0">ℹ️ คำแนะนำ</h5>
+    <div class="card-header d-flex align-items-center gap-2">
+        <svg class="svg-icon text-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <h5 class="mb-0">แนวทางการเลือกโมเดลสำหรับการถอดเสียงภาษาไทย</h5>
     </div>
     <div class="card-body">
-        <ul>
-            <li><strong>โมเดล base</strong>: แนะนำสำหรับการใช้งานทั่วไป (เร็ว)</li>
-            <li><strong>โมเดล medium</strong>: แนะนำสำหรับภาษาไทย (แม่นยำ)</li>
-            <li><strong>โมเดล large</strong>: สำหรับความแม่นยำสูงสุด (ต้องการ RAM และเวลามาก)</li>
-            <li>การดาวน์โหลดอาจใช้เวลานานขึ้นอยู่กับความเร็วอินเทอร์เน็ต</li>
-            <li>ตรวจสอบพื้นที่ว่างในฮาร์ดดิสก์ก่อนดาวน์โหลด</li>
-            <li>โมเดลจะบันทึกใน: <code>storage/models/</code></li>
+        <ul class="mb-0 text-slate-700" style="line-height: 1.8;">
+            <li><strong>โมเดล base (~140 MB)</strong>: เหมาะสำหรับการทดสอบความเร็วและการประชุมทั่วไปที่เสียงชัดเจน</li>
+            <li><strong>โมเดล medium (~1.5 GB)</strong>: <em>แนะนำสำหรับภาษาไทย</em> ให้ความแม่นยำสูง แยกวรรคและคำเฉพาะทางได้ดี</li>
+            <li><strong>โมเดล large-v3 (~3 GB)</strong>: เหมาะสำหรับความแม่นยำขั้นสูงสุด (ต้องการ RAM ขั้นต่ำ 8-16 GB)</li>
+            <li>เมื่อดาวน์โหลดเสร็จสมบูรณ์แล้ว ตัวโมเดลจะถูกแคชในเครื่อง ทำให้สามารถใช้งานขณะออฟไลน์ได้ 100%</li>
         </ul>
     </div>
 </div>
@@ -116,24 +142,50 @@
     // Render models table
     function renderModels() {
         const tbody = document.getElementById('modelsTableBody');
+        const countBadge = document.getElementById('modelsCountBadge');
+        if (countBadge) {
+            const downloadedCount = models.filter(m => m.is_downloaded).length;
+            countBadge.textContent = `${downloadedCount}/${models.length} ติดตั้งแล้ว`;
+        }
+
+        if (models.length === 0) {
+            tbody.innerHTML = `
+            <tr>
+                <td colspan="5" class="text-center text-muted-custom py-4">
+                    ไม่พบข้อมูลโมเดล
+                </td>
+            </tr>
+        `;
+            return;
+        }
+
         tbody.innerHTML = models.map(model => `
         <tr>
-            <td><strong>${model.name}</strong></td>
-            <td>${model.size}</td>
-            <td>${model.description}</td>
-            <td>
-                ${model.is_downloaded ?
-                '<span class="badge bg-success">ดาวน์โหลดแล้ว</span>' :
-                '<span class="badge bg-secondary">ยังไม่ดาวน์โหลด</span>'}
+            <td style="padding-left: 1.5rem;">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="rounded-circle bg-primary-subtle text-primary d-inline-flex align-items-center justify-content-center" style="width: 24px; height: 24px;">
+                        <svg class="svg-icon" viewBox="0 0 24 24" style="width: 12px; height: 12px;"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"/><rect x="9" y="9" width="6" height="6"/></svg>
+                    </span>
+                    <strong class="text-slate-800">${model.name}</strong>
+                </div>
             </td>
+            <td><span class="badge bg-light text-slate-700 font-monospace border px-2 py-1">${model.size}</span></td>
+            <td><span class="text-muted-custom small">${model.description}</span></td>
             <td>
                 ${model.is_downloaded ?
-                `<button class="btn btn-sm btn-danger" onclick="deleteModel('${model.name}')">
-                        ลบ
-                    </button>` :
-                `<button class="btn btn-sm btn-primary" onclick="downloadModel('${model.name}')">
-                        ⬇️ ดาวน์โหลด
-                    </button>`
+                '<span class="badge badge-custom badge-success">ดาวน์โหลดแล้ว</span>' :
+                '<span class="badge badge-custom bg-secondary">ยังไม่ดาวน์โหลด</span>'}
+            </td>
+            <td style="padding-right: 1.5rem; text-align: right;">
+                ${model.is_downloaded ?
+                `<button class="btn btn-sm btn-outline-danger btn-custom py-1 px-2" onclick="deleteModel('${model.name}')" title="ลบโมเดล">
+                    <svg class="svg-icon" viewBox="0 0 24 24" style="width: 13px; height: 13px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    <span>ลบ</span>
+                </button>` :
+                `<button class="btn btn-sm btn-primary-custom btn-custom py-1 px-2" onclick="downloadModel('${model.name}')" title="ดาวน์โหลด">
+                    <svg class="svg-icon" viewBox="0 0 24 24" style="width: 13px; height: 13px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    <span>ดาวน์โหลด</span>
+                </button>`
             }
             </td>
         </tr>

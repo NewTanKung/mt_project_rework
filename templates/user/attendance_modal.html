@@ -1,27 +1,33 @@
 <!-- Attendance Check Modal -->
 <div class="modal fade" id="attendanceModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">📋 เช็คผู้เข้าร่วมประชุม</h5>
+                <h5 class="modal-title d-flex align-items-center gap-2">
+                    <svg class="svg-icon text-primary" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                    เช็คชื่อผู้เข้าร่วมการประชุม
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
-                <div class="alert alert-info mb-3">
-                    <small>
-                        <strong>วิธีใช้:</strong> คลิกปุ่ม <span class="badge bg-danger">❌ ขาด</span>
-                        เพื่อทำเครื่องหมายว่าขาด
-                        (ผู้ที่แสดง <span class="badge bg-success">✅ มา</span> จะถือว่าเข้าร่วมประชุม)
-                    </small>
+            <div class="modal-body p-4">
+                <div class="alert alert-info d-flex align-items-center gap-2 mb-4">
+                    <svg class="svg-icon text-info flex-shrink-0" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    <div class="small">
+                        <strong>คำแนะนำ:</strong> คลิกปุ่มเพื่อสลับสถานะระหว่าง <span class="badge bg-success-subtle text-success border border-success-subtle">มา</span> และ <span class="badge bg-danger-subtle text-danger border border-danger-subtle">ขาด</span>
+                    </div>
                 </div>
                 <div id="attendanceGrid" class="row g-3">
-                    <div class="col-12 text-center text-muted">กำลังโหลด...</div>
+                    <div class="col-12 text-center text-muted-custom py-4">
+                        <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                        กำลังโหลดรายชื่อ...
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
-                <button type="button" class="btn btn-primary" onclick="saveAttendance()">
-                    <i class="bi bi-check-lg"></i> บันทึก
+                <button type="button" class="btn btn-secondary btn-custom" data-bs-dismiss="modal">ยกเลิก</button>
+                <button type="button" class="btn btn-primary-custom btn-custom" onclick="saveAttendance()">
+                    <svg class="svg-icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span>บันทึกการเช็คชื่อ</span>
                 </button>
             </div>
         </div>

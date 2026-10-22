@@ -4,67 +4,104 @@
 
 {% block content %}
 <div class="page-header">
-    <h1>การจัดเก็บไฟล์</h1>
-    <p class="text-muted-custom">กำหนด path สำหรับเก็บไฟล์ต่างๆ</p>
+    <h1>
+        <svg class="svg-icon text-primary" viewBox="0 0 24 24" style="width: 2rem; height: 2rem;">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+        </svg>
+        การจัดเก็บไฟล์ (Storage Paths)
+    </h1>
+    <p class="text-muted-custom">กำหนดไดเรกทอรีสำหรับบันทึกไฟล์เสียง ไฟล์ถอดเสียง ไฟล์เอกสารรายงาน และโมเดล AI</p>
 </div>
 
 <!-- Alert Container -->
 <div id="alertContainer"></div>
 
-<!-- Storage Settings Form -->
-<div class="card card-custom">
-    <div class="card-header">
-        <h5 class="mb-0">ตั้งค่า Storage Paths</h5>
+<!-- Storage Settings Form Card -->
+<div class="card card-custom mb-4">
+    <div class="card-header d-flex align-items-center gap-2">
+        <svg class="svg-icon text-primary" viewBox="0 0 24 24">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+        </svg>
+        <h5 class="mb-0">กำหนด Path โฟลเดอร์ของระบบ</h5>
     </div>
     <div class="card-body">
         <form id="storageForm" onsubmit="saveStorage(event)">
             <div class="mb-3">
-                <label for="exportPath" class="form-label">Export Path (PDF)</label>
-                <input type="text" class="form-control form-control-custom" id="exportPath" required
-                    placeholder="C:\MeetingRecorder\exports">
-                <small class="text-muted-custom">โฟลเดอร์สำหรับเก็บไฟล์ PDF ที่ export</small>
+                <label for="exportPath" class="form-label fw-semibold">Export Path (ไฟล์เอกสาร PDF / Word / Text)</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white">
+                        <svg class="svg-icon text-muted" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                    </span>
+                    <input type="text" class="form-control form-control-custom font-monospace" id="exportPath" required
+                        placeholder="C:\MeetingRecorder\exports">
+                </div>
+                <small class="text-muted-custom">โฟลเดอร์สำหรับส่งออกรายงานสรุปและบันทึกการประชุม</small>
             </div>
 
             <div class="mb-3">
-                <label for="audioPath" class="form-label">Audio Path</label>
-                <input type="text" class="form-control form-control-custom" id="audioPath" required
-                    placeholder="C:\MeetingRecorder\audio">
-                <small class="text-muted-custom">โฟลเดอร์สำหรับเก็บไฟล์เสียงที่บันทึก</small>
+                <label for="audioPath" class="form-label fw-semibold">Audio Path (ไฟล์เสียงดิบ .wav จากไมโครโฟน)</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white">
+                        <svg class="svg-icon text-muted" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                    </span>
+                    <input type="text" class="form-control form-control-custom font-monospace" id="audioPath" required
+                        placeholder="C:\MeetingRecorder\audio">
+                </div>
+                <small class="text-muted-custom">โฟลเดอร์สำหรับเก็บไฟล์บันทึกเสียงแบบ Multi-channel</small>
             </div>
 
             <div class="mb-3">
-                <label for="transcriptionPath" class="form-label">Transcription Path</label>
-                <input type="text" class="form-control form-control-custom" id="transcriptionPath" required
-                    placeholder="C:\MeetingRecorder\transcriptions">
-                <small class="text-muted-custom">โฟลเดอร์สำหรับเก็บไฟล์ถอดเสียง</small>
+                <label for="transcriptionPath" class="form-label fw-semibold">Transcription Path (ไฟล์ถอดเสียงชั่วคราว)</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white">
+                        <svg class="svg-icon text-muted" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+                    </span>
+                    <input type="text" class="form-control form-control-custom font-monospace" id="transcriptionPath" required
+                        placeholder="C:\MeetingRecorder\transcriptions">
+                </div>
+                <small class="text-muted-custom">โฟลเดอร์เก็บไฟล์ข้อความและแคชชั่วคราวระหว่างถอดเสียง</small>
             </div>
 
             <div class="mb-4">
-                <label for="modelPath" class="form-label">Model Path</label>
-                <input type="text" class="form-control form-control-custom" id="modelPath" required
-                    placeholder="C:\MeetingRecorder\models">
-                <small class="text-muted-custom">โฟลเดอร์สำหรับเก็บโมเดล Whisper</small>
+                <label for="modelPath" class="form-label fw-semibold">Model Path (โฟลเดอร์เก็บโมเดล Faster-Whisper)</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white">
+                        <svg class="svg-icon text-muted" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>
+                    </span>
+                    <input type="text" class="form-control form-control-custom font-monospace" id="modelPath" required
+                        placeholder="C:\MeetingRecorder\models">
+                </div>
+                <small class="text-muted-custom">โฟลเดอร์สำหรับวางน้ำหนักโมเดล Faster-Whisper ออฟไลน์</small>
             </div>
 
             <button type="submit" class="btn btn-primary-custom btn-custom">
-                <span id="saveText">💾 บันทึก</span>
+                <span id="saveText" class="d-inline-flex align-items-center gap-2">
+                    <svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                    <span>บันทึกการตั้งค่า</span>
+                </span>
                 <span id="saveSpinner" class="spinner-custom d-none"></span>
             </button>
         </form>
     </div>
 </div>
 
-<!-- Path Info -->
+<!-- Path Info Card -->
 <div class="card card-custom">
-    <div class="card-header">
-        <h5 class="mb-0">ℹ️ คำแนะนำ</h5>
+    <div class="card-header d-flex align-items-center gap-2">
+        <svg class="svg-icon text-info" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="16" x2="12" y2="12"/>
+            <line x1="12" y1="8" x2="12.01" y2="8"/>
+        </svg>
+        <h5 class="mb-0">ข้อแนะนำความปลอดภัยและพื้นที่จัดเก็บ</h5>
     </div>
     <div class="card-body">
-        <ul>
-            <li>Path ควรอยู่ใน drive ที่มีพื้นที่เพียงพอ</li>
-            <li>โปรแกรมจะสร้างโฟลเดอร์อัตโนมัติถ้ายังไม่มี</li>
-            <li>แนะนำให้ใช้ path ที่ไม่อยู่ใน System Drive (C:) เพื่อความปลอดภัย</li>
-            <li>ตรวจสอบให้แน่ใจว่าโปรแกรมมีสิทธิ์เขียนไฟล์ใน path ที่กำหนด</li>
+        <ul class="mb-0 text-slate-700" style="line-height: 1.8;">
+            <li>ควรเลือกไดรฟ์ที่มีพื้นที่ว่างอย่างน้อย <strong>10-20 GB</strong> สำหรับเก็บไฟล์เสียงแบบไม่มีการบีบอัด</li>
+            <li>ระบบจะทำการสร้างโฟลเดอร์อัตโนมัติหากยังไม่มีอยู่จริงในเครื่อง</li>
+            <li>แนะนำให้แยกเก็บในไดรฟ์ข้อมูล (เช่น <code>D:\</code>) แทนที่จะใช้ไดรฟ์ระบบหลัก (<code>C:\</code>)</li>
+            <li>ตรวจสอบให้แน่ใจว่าโปรแกรมมีสิทธิ์เขียนไฟล์ (Write Permission) ในไดเรกทอรีที่ระบุ</li>
         </ul>
     </div>
 </div>

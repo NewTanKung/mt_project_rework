@@ -1,33 +1,45 @@
-/* Attendance Modal Styles */
+/* ==========================================================================
+   Attendance Modal Styles - Modern Glassmorphism
+   ========================================================================== */
 
 .attendance-card {
-    background: white;
-    border: 2px solid #e0e0e0;
-    border-radius: 12px;
-    padding: 1rem;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.attendance-card.present {
-    border-color: #28a745;
-    background: linear-gradient(to right, #f8fff9, white);
-}
-
-.attendance-card.absent {
-    border-color: #dc3545;
-    background: linear-gradient(to right, #fff5f5, white);
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    border: 1.5px solid rgba(226, 232, 240, 0.9);
+    border-radius: 14px;
+    padding: 1.15rem;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
 }
 
 .attendance-card:hover {
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 10px 20px -5px rgba(15, 23, 42, 0.08);
     transform: translateY(-2px);
+}
+
+.attendance-card.present {
+    border-color: #10b981;
+    background: linear-gradient(135deg, rgba(236, 253, 245, 0.95) 0%, rgba(255, 255, 255, 0.95) 100%);
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.15);
+}
+
+.attendance-card.absent {
+    border-color: #ef4444;
+    background: linear-gradient(135deg, rgba(254, 242, 242, 0.95) 0%, rgba(255, 255, 255, 0.95) 100%);
+    box-shadow: 0 4px 14px rgba(239, 68, 68, 0.15);
+}
+
+.attendance-card.late {
+    border-color: #f59e0b;
+    background: linear-gradient(135deg, rgba(254, 243, 199, 0.95) 0%, rgba(255, 255, 255, 0.95) 100%);
+    box-shadow: 0 4px 14px rgba(245, 158, 11, 0.15);
 }
 
 .btn-toggle {
     min-width: 80px;
     font-weight: 600;
-    transition: all 0.2s ease;
+    border-radius: 8px;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .btn-toggle:active {
@@ -36,10 +48,9 @@
 
 #attendanceGrid .col-md-6,
 #attendanceGrid .col-lg-4 {
-    margin-bottom: 1rem;
+    margin-bottom: 1.15rem;
 }
 
-/* Responsive */
 @media (max-width: 768px) {
     #attendanceGrid .col-md-6 {
         flex: 0 0 100%;

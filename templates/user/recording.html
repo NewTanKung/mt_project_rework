@@ -4,200 +4,123 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/attendance.css') }}">
-<style>
-    .timer-display {
-        font-size: 3rem;
-        font-weight: bold;
-        text-align: center;
-        padding: 2rem;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-radius: 15px;
-        margin-bottom: 2rem;
-    }
-
-    .control-button {
-        min-width: 120px;
-        font-size: 1.1rem;
-        padding: 12px 24px;
-    }
-
-    .speaker-indicator {
-        display: inline-block;
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        background-color: #6c757d;
-        margin-left: 8px;
-        transition: all 0.3s ease;
-    }
-
-    .speaker-indicator.speaking {
-        background-color: #28a745;
-        box-shadow: 0 0 10px #28a745;
-        animation: pulse 1s infinite;
-    }
-
-    @keyframes pulse {
-
-        0%,
-        100% {
-            transform: scale(1);
-            opacity: 1;
-        }
-
-        50% {
-            transform: scale(1.2);
-            opacity: 0.8;
-        }
-    }
-
-    /* Participants Grid Layout */
-    .participants-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-        gap: 1rem;
-        padding: 0.5rem;
-    }
-
-    .participant-card {
-        background: #f8f9fa;
-        border: 2px solid #dee2e6;
-        border-radius: 12px;
-        padding: 1rem;
-        text-align: center;
-        transition: all 0.3s ease;
-        position: relative;
-    }
-
-    .participant-card.speaking {
-        background: #d4edda;
-        border-color: #28a745;
-        box-shadow: 0 0 15px rgba(40, 167, 69, 0.3);
-    }
-
-    .participant-avatar {
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 0.5rem;
-        font-size: 1.5rem;
-        font-weight: bold;
-        color: white;
-        position: relative;
-    }
-
-    .participant-card.speaking .participant-avatar {
-        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-        animation: avatarPulse 1s infinite;
-    }
-
-    @keyframes avatarPulse {
-
-        0%,
-        100% {
-            transform: scale(1);
-        }
-
-        50% {
-            transform: scale(1.05);
-        }
-    }
-
-    .participant-name {
-        font-weight: 600;
-        font-size: 0.9rem;
-        margin-bottom: 0.25rem;
-        color: #2c3e50;
-    }
-
-    .participant-channel {
-        font-size: 0.75rem;
-        color: #6c757d;
-        margin-bottom: 0.25rem;
-    }
-
-    .participant-status {
-        font-size: 0.7rem;
-        color: #6c757d;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.25rem;
-    }
-
-    .participant-card.speaking .participant-status {
-        color: #28a745;
-        font-weight: 600;
-    }
-</style>
 {% endblock %}
 
 {% block content %}
 <div class="page-header">
-    <h1>การบันทึกเสียงการประชุม</h1>
-    <p class="text-muted-custom">เริ่มบันทึก หยุดชั่วคราว หรือสิ้นสุดการประชุม</p>
+    <h1>
+        <svg class="svg-icon text-primary" viewBox="0 0 24 24" style="width: 2rem; height: 2rem;">
+            <circle cx="12" cy="12" r="10"/>
+            <circle cx="12" cy="12" r="3" fill="currentColor"/>
+        </svg>
+        การบันทึกเสียงการประชุม
+    </h1>
+    <p class="text-muted-custom">ควบคุมการบันทึกเสียง ตรวจสอบสถานะไมโครโฟน และติดตามผู้พูดแบบเรียลไทม์</p>
 </div>
 
 <!-- Alert Container -->
 <div id="alertContainer"></div>
 
-<!-- Meeting Info -->
-<div class="card card-custom">
-    <div class="card-header">
-        <h5 class="mb-0">ข้อมูลการประชุม</h5>
+<!-- Meeting Info Card -->
+<div class="card card-custom mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 d-flex align-items-center gap-2">
+            <svg class="svg-icon text-primary" viewBox="0 0 24 24">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+            </svg>
+            ข้อมูลการประชุม
+        </h5>
+        <button class="btn btn-sm btn-outline-secondary btn-custom" onclick="selectModal.show()" title="เปลี่ยนการประชุม">
+            <svg class="svg-icon" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><polyline points="23 20 23 14 17 14"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
+            <span>เปลี่ยนการประชุม</span>
+        </button>
     </div>
     <div class="card-body">
-        <div class="row">
+        <div class="row g-3">
             <div class="col-md-6">
-                <p><strong>ชื่อการประชุม:</strong> <span id="meetingName">-</span></p>
-                <p><strong>วันที่:</strong> <span id="meetingDate">-</span></p>
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="text-muted-custom" style="min-width: 100px;">ชื่อการประชุม:</span>
+                    <strong class="text-slate-800" id="meetingName">-</strong>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="text-muted-custom" style="min-width: 100px;">วันที่:</span>
+                    <span id="meetingDate">-</span>
+                </div>
             </div>
             <div class="col-md-6">
-                <p><strong>สถานที่:</strong> <span id="meetingLocation">-</span></p>
-                <p><strong>สถานะ:</strong> <span id="meetingStatus" class="badge">-</span></p>
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="text-muted-custom" style="min-width: 100px;">สถานที่:</span>
+                    <span id="meetingLocation">-</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="text-muted-custom" style="min-width: 100px;">สถานะ:</span>
+                    <span id="meetingStatus" class="badge badge-custom bg-secondary">-</span>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Timer -->
-<div class="timer-display" id="timerDisplay">
-    00:00:00
+<!-- Timer Cockpit -->
+<div class="timer-cockpit">
+    <div class="recording-badge-live" id="recordingBadgeLive">
+        <span class="rec-dot"></span>
+        <span id="recordingBadgeText">พร้อมบันทึก</span>
+    </div>
+    <div class="timer-display" id="timerDisplay">
+        00:00:00
+    </div>
+    <div class="text-white-50 small" id="timerStatusHelp">
+        กด "เริ่มบันทึก" เพื่อเริ่มต้นการบันทึกเสียงการประชุม
+    </div>
 </div>
 
 <!-- Control Buttons -->
-<div class="text-center mb-4">
-    <button class="btn btn-info control-button me-2" id="checkAttendanceBtn" onclick="openAttendanceModal()">
-        📋 เช็คผู้เข้าร่วม
+<div class="text-center mb-4 d-flex justify-content-center align-items-center flex-wrap gap-2">
+    <button class="btn btn-outline-primary btn-custom" id="checkAttendanceBtn" onclick="openAttendanceModal()">
+        <svg class="svg-icon" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        <span>เช็คผู้เข้าร่วม</span>
     </button>
-    <button class="btn btn-success control-button me-2" id="startBtn" onclick="startRecording()">
-        เริ่มบันทึก
+    <button class="btn btn-success btn-custom" id="startBtn" onclick="startRecording()">
+        <svg class="svg-icon" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        <span>เริ่มบันทึก</span>
     </button>
-    <button class="btn btn-warning control-button me-2 d-none" id="pauseBtn" onclick="pauseRecording()">
-        หยุดชั่วคราว
+    <button class="btn btn-warning btn-custom d-none" id="pauseBtn" onclick="pauseRecording()">
+        <svg class="svg-icon" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+        <span>หยุดชั่วคราว</span>
     </button>
-    <button class="btn btn-info control-button me-2 d-none" id="resumeBtn" onclick="resumeRecording()">
-        ดำเนินการต่อ
+    <button class="btn btn-info btn-custom text-white d-none" id="resumeBtn" onclick="resumeRecording()">
+        <svg class="svg-icon" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        <span>ดำเนินการต่อ</span>
     </button>
-    <button class="btn btn-danger control-button d-none" id="stopBtn" onclick="stopRecording()">
-        สิ้นสุดการประชุม
+    <button class="btn btn-danger btn-custom d-none" id="stopBtn" onclick="stopRecording()">
+        <svg class="svg-icon" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+        <span>สิ้นสุดการประชุม</span>
     </button>
 </div>
 
-<!-- Participants -->
+<!-- Participants Visualizer Grid -->
 <div class="card card-custom">
-    <div class="card-header">
-        <h5 class="mb-0">ผู้เข้าร่วม</h5>
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 d-flex align-items-center gap-2">
+            <svg class="svg-icon text-primary" viewBox="0 0 24 24">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            ผู้เข้าร่วมการประชุมและกิจกรรมเสียง
+        </h5>
+        <span class="badge bg-light text-slate-700 border small">ตรวจจับเรียลไทม์</span>
     </div>
     <div class="card-body">
         <div id="participantsGrid" class="participants-grid">
-            <div class="text-center text-muted-custom p-4">
-                กำลังโหลด...
+            <div class="text-center text-muted-custom p-4 w-100">
+                <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                กำลังโหลดข้อมูลผู้เข้าร่วม...
             </div>
         </div>
     </div>
@@ -205,13 +128,16 @@
 
 <!-- Select Meeting Modal -->
 <div class="modal fade" id="selectMeetingModal" tabindex="-1" data-bs-backdrop="static">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">เลือกการประชุม</h5>
+                <h5 class="modal-title d-flex align-items-center gap-2">
+                    <svg class="svg-icon text-primary" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                    เลือกการประชุมที่จะบันทึก
+                </h5>
             </div>
             <div class="modal-body">
-                <p>เลือกการประชุมที่ลงทะเบียนไว้</p>
+                <p class="text-muted-custom mb-3">เลือกการประชุมที่ลงทะเบียนไว้ล่วงหน้าเพื่อเริ่มต้นการบันทึกเสียง</p>
                 <div class="table-responsive">
                     <table class="table table-custom">
                         <thead>
@@ -219,19 +145,23 @@
                                 <th>ชื่อการประชุม</th>
                                 <th>วันที่</th>
                                 <th>สถานะ</th>
-                                <th>เลือก</th>
+                                <th class="text-end">เลือก</th>
                             </tr>
                         </thead>
                         <tbody id="meetingsTableBody">
                             <tr>
-                                <td colspan="4" class="text-center">กำลังโหลด...</td>
+                                <td colspan="4" class="text-center py-4 text-muted-custom">
+                                    <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                                    กำลังโหลด...
+                                </td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
             <div class="modal-footer">
-                <a href="/user/register" class="btn btn-primary">
+                <a href="/user/register" class="btn btn-primary btn-custom">
+                    <svg class="svg-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                     ลงทะเบียนการประชุมใหม่
                 </a>
             </div>
@@ -371,12 +301,12 @@
         renderParticipants();
     }
 
-    // Render participants    // Render participants with speaker indicators
+    // Render participants with speaker indicators & soundwave bars
     function renderParticipants() {
         const grid = document.getElementById('participantsGrid');
 
         if (!currentMeeting || !currentMeeting.participants || currentMeeting.participants.length === 0) {
-            grid.innerHTML = '<div class="text-center text-muted-custom p-4">ไม่มีผู้เข้าร่วม</div>';
+            grid.innerHTML = '<div class="text-center text-muted-custom p-4 w-100">ไม่มีผู้เข้าร่วมในการประชุมนี้</div>';
             return;
         }
 
@@ -384,21 +314,29 @@
             // Get initials for avatar
             const initials = p.participant_name
                 .split(' ')
+                .filter(n => n.length > 0)
                 .map(n => n[0])
                 .join('')
                 .toUpperCase()
-                .substring(0, 2);
+                .substring(0, 2) || 'P';
 
             return `
             <div class="participant-card" id="participant-${p.person_id}">
-                <div class="participant-avatar">
-                    ${initials}
+                <div class="participant-avatar-wrap">
+                    <div class="avatar-glow-ring"></div>
+                    <div class="participant-avatar">${initials}</div>
                 </div>
-                <div class="participant-name">${p.participant_name}</div>
-                <div class="participant-channel">${p.channel_name || '-'}</div>
+                <div class="participant-name text-truncate" title="${p.participant_name}">${p.participant_name}</div>
+                <div class="participant-channel text-muted-custom small mb-1">${p.channel_name || '-'}</div>
                 <div class="participant-status">
-                    <span class="status-text">ไม่พูด</span>
+                    <span class="status-text text-muted-custom">ไม่พูด</span>
                     <span class="speaker-indicator" id="indicator-${p.person_id}"></span>
+                </div>
+                <div class="soundwave-bars" title="Audio Activity">
+                    <span class="soundwave-bar"></span>
+                    <span class="soundwave-bar"></span>
+                    <span class="soundwave-bar"></span>
+                    <span class="soundwave-bar"></span>
                 </div>
             </div>
         `}).join('');
@@ -407,8 +345,39 @@
     // Update status display
     function updateStatusDisplay(status) {
         const badge = document.getElementById('meetingStatus');
-        badge.className = `badge badge-custom ${getStatusClass(status)}`;
-        badge.textContent = getStatusText(status);
+        if (badge) {
+            badge.className = `badge badge-custom ${getStatusClass(status)}`;
+            badge.textContent = getStatusText(status);
+        }
+
+        const badgeText = document.getElementById('recordingBadgeText');
+        const badgeLive = document.getElementById('recordingBadgeLive');
+        const helpText = document.getElementById('timerStatusHelp');
+        if (badgeText && badgeLive) {
+            if (status === 'recording') {
+                badgeText.textContent = 'กำลังบันทึกเสียง (LIVE)';
+                badgeLive.style.borderColor = 'rgba(239, 68, 68, 0.6)';
+                badgeLive.style.background = 'rgba(239, 68, 68, 0.25)';
+                badgeLive.classList.remove('d-none');
+                if (helpText) helpText.textContent = 'ระบบกำลังบันทึกและตรวจจับเสียงผู้เข้าร่วมแบบเรียลไทม์';
+            } else if (status === 'paused') {
+                badgeText.textContent = 'หยุดชั่วคราว (PAUSED)';
+                badgeLive.style.borderColor = 'rgba(245, 158, 11, 0.6)';
+                badgeLive.style.background = 'rgba(245, 158, 11, 0.25)';
+                badgeLive.classList.remove('d-none');
+                if (helpText) helpText.textContent = 'การบันทึกเสียงหยุดชั่วคราว กด "ดำเนินการต่อ" เพื่อบันทึกต่อ';
+            } else if (status === 'completed') {
+                badgeText.textContent = 'การประชุมเสร็จสิ้น';
+                badgeLive.style.borderColor = 'rgba(16, 185, 129, 0.6)';
+                badgeLive.style.background = 'rgba(16, 185, 129, 0.25)';
+                if (helpText) helpText.textContent = 'เสร็จสิ้นการบันทึกเรียบร้อยแล้ว กำลังนำทางไปหน้ารายการการประชุม';
+            } else {
+                badgeText.textContent = 'พร้อมบันทึก';
+                badgeLive.style.borderColor = 'rgba(99, 102, 241, 0.4)';
+                badgeLive.style.background = 'rgba(99, 102, 241, 0.15)';
+                if (helpText) helpText.textContent = 'กด "เริ่มบันทึก" เพื่อเริ่มต้นการบันทึกเสียงการประชุม';
+            }
+        }
     }
 
     // Start recording
@@ -639,11 +608,19 @@
         if (isSpeaking) {
             indicator.classList.add('speaking');
             card.classList.add('speaking');
-            if (statusText) statusText.textContent = '🎤 กำลังพูด';
+            if (statusText) {
+                statusText.textContent = 'กำลังพูด';
+                statusText.classList.remove('text-muted-custom');
+                statusText.classList.add('text-success', 'fw-semibold');
+            }
         } else {
             indicator.classList.remove('speaking');
             card.classList.remove('speaking');
-            if (statusText) statusText.textContent = 'ไม่พูด';
+            if (statusText) {
+                statusText.textContent = 'ไม่พูด';
+                statusText.classList.remove('text-success', 'fw-semibold');
+                statusText.classList.add('text-muted-custom');
+            }
         }
     }
 

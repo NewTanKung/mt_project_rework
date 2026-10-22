@@ -13,10 +13,22 @@
 
 <body>
     <div class="login-container">
+        <!-- Ambient Glowing Orbs -->
+        <div class="login-ambient-orb login-orb-1"></div>
+        <div class="login-ambient-orb login-orb-2"></div>
+
         <div class="login-card">
             <div class="login-header">
-                <h1>🎙️ บันทึกการประชุม</h1>
-                <p>ระบบบันทึกและถอดเสียงการประชุม</p>
+                <div class="logo-badge">
+                    <svg class="svg-icon svg-icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                        <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                        <line x1="12" y1="19" x2="12" y2="23"></line>
+                        <line x1="8" y1="23" x2="16" y2="23"></line>
+                    </svg>
+                </div>
+                <h1>บันทึกการประชุม</h1>
+                <p>ระบบบันทึกและถอดเสียงการประชุมอัจฉริยะ</p>
             </div>
 
             <!-- Alert Messages -->
@@ -25,23 +37,44 @@
             <!-- Login Form -->
             <form id="loginForm">
                 <div class="mb-3">
-                    <label for="username" class="form-label">ชื่อผู้ใช้</label>
-                    <input type="text" class="form-control form-control-custom" id="username" name="username" required
-                        autofocus>
+                    <label for="username" class="form-label fw-semibold text-secondary small">ชื่อผู้ใช้</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0 border" style="border-color: var(--slate-200); border-radius: 10px 0 0 10px;">
+                            <svg class="svg-icon text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                        </span>
+                        <input type="text" class="form-control form-control-custom border-start-0" id="username" name="username" 
+                            style="border-radius: 0 10px 10px 0;" placeholder="กรอกชื่อผู้ใช้..." required autofocus>
+                    </div>
                 </div>
 
                 <div class="mb-4">
-                    <label for="password" class="form-label">รหัสผ่าน</label>
-                    <input type="password" class="form-control form-control-custom" id="password" name="password"
-                        required>
+                    <label for="password" class="form-label fw-semibold text-secondary small">รหัสผ่าน</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0 border" style="border-color: var(--slate-200); border-radius: 10px 0 0 10px;">
+                            <svg class="svg-icon text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                            </svg>
+                        </span>
+                        <input type="password" class="form-control form-control-custom border-start-0" id="password" name="password"
+                            style="border-radius: 0 10px 10px 0;" placeholder="กรอกรหัสผ่าน..." required>
+                    </div>
                 </div>
 
-                <button type="submit" class="btn btn-primary-custom btn-custom w-100" id="loginBtn">
-                    <span id="loginText">เข้าสู่ระบบ</span>
+                <button type="submit" class="btn btn-primary-custom btn-custom w-100 py-2" id="loginBtn">
+                    <span id="loginText" class="d-flex align-items-center justify-content-center gap-2">
+                        <span>เข้าสู่ระบบ</span>
+                        <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
+                    </span>
                     <span id="loginSpinner" class="spinner-custom d-none"></span>
                 </button>
             </form>
-
         </div>
     </div>
 
@@ -59,10 +92,12 @@
         // Show alert
         function showAlert(message, type = 'danger') {
             const alert = document.createElement('div');
-            alert.className = `alert alert-${type} alert-custom alert-dismissible fade show`;
+            alert.className = `alert alert-${type} alert-custom alert-dismissible fade show card-custom p-3 mb-3`;
             alert.innerHTML = `
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <div class="d-flex align-items-center">
+                    <span class="flex-grow-1">${message}</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
             `;
             alertContainer.innerHTML = '';
             alertContainer.appendChild(alert);

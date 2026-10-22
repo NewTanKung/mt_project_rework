@@ -4,44 +4,67 @@
 
 {% block content %}
 <div class="page-header">
-    <h1>จัดการอุปกรณ์เสียง</h1>
-    <p class="text-muted-custom">ค้นหาและจัดการอุปกรณ์บันทึกเสียง</p>
+    <h1>
+        <svg class="svg-icon text-primary" viewBox="0 0 24 24" style="width: 2rem; height: 2rem;">
+            <rect x="2" y="2" width="20" height="8" rx="2" ry="2"/>
+            <rect x="2" y="14" width="20" height="8" rx="2" ry="2"/>
+            <line x1="6" y1="6" x2="6.01" y2="6"/>
+            <line x1="6" y1="18" x2="6.01" y2="18"/>
+        </svg>
+        จัดการอุปกรณ์เสียง (Audio Devices)
+    </h1>
+    <p class="text-muted-custom">ค้นหา ตรวจสอบฮาร์ดแวร์ไมโครโฟน และอัปเดต Device Index ของระบบเสียงในเครื่อง</p>
 </div>
 
 <!-- Alert Container -->
 <div id="alertContainer"></div>
 
-<!-- Scan Button -->
-<div class="card card-custom">
-    <div class="card-body">
-        <button class="btn btn-primary-custom btn-custom" id="scanBtn" onclick="scanDevices()">
-            <span id="scanText">🔍 ค้นหาอุปกรณ์</span>
-            <span id="scanSpinner" class="spinner-custom d-none"></span>
-        </button>
-        <span class="text-muted-custom ms-3" id="scanStatus"></span>
+<!-- Scan Toolbar Card -->
+<div class="card card-custom mb-4">
+    <div class="card-body d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <div class="d-flex align-items-center gap-3">
+            <button class="btn btn-primary-custom btn-custom" id="scanBtn" onclick="scanDevices()">
+                <span id="scanText" class="d-inline-flex align-items-center gap-2">
+                    <svg class="svg-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <span>ค้นหาอุปกรณ์เสียงใหม่</span>
+                </span>
+                <span id="scanSpinner" class="spinner-custom d-none"></span>
+            </button>
+            <span class="text-muted-custom small" id="scanStatus"></span>
+        </div>
+        <div class="text-muted-custom small">
+            รองรับ Host APIs เช่น MME, DirectSound, WASAPI, CoreAudio
+        </div>
     </div>
 </div>
 
-<!-- Devices Table -->
+<!-- Devices Table Card -->
 <div class="card card-custom">
-    <div class="card-header">
-        <h5 class="mb-0">รายการอุปกรณ์</h5>
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 d-flex align-items-center gap-2">
+            <svg class="svg-icon text-primary" viewBox="0 0 24 24">
+                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+            </svg>
+            รายการอุปกรณ์เสียงที่ตรวจพบ
+        </h5>
+        <span class="badge bg-light text-slate-700 border" id="devicesCountBadge">0 อุปกรณ์</span>
     </div>
-    <div class="card-body">
+    <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-custom">
+            <table class="table table-custom mb-0">
                 <thead>
                     <tr>
-                        <th>ชื่ออุปกรณ์</th>
+                        <th style="padding-left: 1.5rem;">ชื่ออุปกรณ์</th>
                         <th>Device Index</th>
-                        <th>Channels</th>
-                        <th>Host API</th>
+                        <th>Channels รองรับ</th>
+                        <th style="padding-right: 1.5rem;">Host API</th>
                     </tr>
                 </thead>
                 <tbody id="devicesTableBody">
                     <tr>
-                        <td colspan="4" class="text-center text-muted-custom">
-                            กด "ค้นหาอุปกรณ์" เพื่อแสดงรายการ
+                        <td colspan="4" class="text-center text-muted-custom py-4">
+                            กด "ค้นหาอุปกรณ์เสียงใหม่" เพื่อตรวจจับฮาร์ดแวร์ไมโครโฟน
                         </td>
                     </tr>
                 </tbody>
@@ -113,12 +136,16 @@
     // Render devices table
     function renderDevices() {
         const tbody = document.getElementById('devicesTableBody');
+        const countBadge = document.getElementById('devicesCountBadge');
+        if (countBadge) {
+            countBadge.textContent = `${devices.length} อุปกรณ์`;
+        }
 
         if (devices.length === 0) {
             tbody.innerHTML = `
             <tr>
-                <td colspan="4" class="text-center text-muted-custom">
-                    ไม่พบอุปกรณ์ กด "ค้นหาอุปกรณ์" เพื่อค้นหา
+                <td colspan="4" class="text-center text-muted-custom py-4">
+                    ไม่พบอุปกรณ์เสียง — กด "ค้นหาอุปกรณ์เสียงใหม่" ด้านบนเพื่อเริ่มตรวจจับ
                 </td>
             </tr>
         `;
@@ -127,10 +154,15 @@
 
         tbody.innerHTML = devices.map(device => `
         <tr>
-            <td>${device.name}</td>
-            <td>${device.device_index}</td>
-            <td>${device.max_input_channels}</td>
-            <td>${device.host_api}</td>
+            <td style="padding-left: 1.5rem;">
+                <div class="d-flex align-items-center gap-2">
+                    <svg class="svg-icon text-primary flex-shrink-0" viewBox="0 0 24 24" style="width: 16px; height: 16px;"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+                    <strong class="text-slate-800">${device.name}</strong>
+                </div>
+            </td>
+            <td><span class="badge bg-light text-slate-700 font-monospace border px-2 py-1">Index: ${device.device_index}</span></td>
+            <td><span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">${device.max_input_channels} Ch</span></td>
+            <td style="padding-right: 1.5rem;"><span class="text-muted-custom small">${device.host_api}</span></td>
         </tr>
     `).join('');
     }

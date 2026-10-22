@@ -4,91 +4,118 @@
 
 {% block content %}
 <div class="page-header">
-    <h1>ลงทะเบียนการประชุม</h1>
-    <p class="text-muted-custom">สร้างการประชุมใหม่และเพิ่มผู้เข้าร่วม</p>
+    <h1>
+        <svg class="svg-icon text-primary" viewBox="0 0 24 24" style="width: 2rem; height: 2rem;">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+        </svg>
+        ลงทะเบียนการประชุม
+    </h1>
+    <p class="text-muted-custom">กำหนดข้อมูลการประชุมใหม่ เลือกแชนแนลไมโครโฟนสำหรับผู้เข้าร่วม หรือโหลดจาก Preset เดิม</p>
 </div>
 
 <!-- Alert Container -->
 <div id="alertContainer"></div>
 
-<!-- Meeting Form -->
-<div class="card card-custom">
-    <div class="card-header">
-        <h5 class="mb-0">ข้อมูลการประชุม</h5>
+<!-- Meeting Form Card -->
+<div class="card card-custom mb-4">
+    <div class="card-header d-flex align-items-center gap-2">
+        <svg class="svg-icon text-primary" viewBox="0 0 24 24">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+        </svg>
+        <h5 class="mb-0">ข้อมูลทั่วไปของการประชุม</h5>
     </div>
     <div class="card-body">
         <form id="meetingForm">
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label for="meetingName" class="form-label">ชื่อการประชุม *</label>
-                    <input type="text" class="form-control form-control-custom" id="meetingName" required>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label for="meetingName" class="form-label fw-semibold">ชื่อการประชุม <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control form-control-custom" id="meetingName" placeholder="เช่น การประชุมคณะกรรมการประจำเดือน" required>
                 </div>
 
-                <div class="col-md-3 mb-3">
-                    <label for="meetingDate" class="form-label">วันที่ *</label>
+                <div class="col-md-3">
+                    <label for="meetingDate" class="form-label fw-semibold">วันที่จัดประชุม <span class="text-danger">*</span></label>
                     <input type="date" class="form-control form-control-custom" id="meetingDate" required>
                 </div>
 
-                <div class="col-md-3 mb-3">
-                    <label for="meetingLocation" class="form-label">สถานที่</label>
-                    <input type="text" class="form-control form-control-custom" id="meetingLocation">
+                <div class="col-md-3">
+                    <label for="meetingLocation" class="form-label fw-semibold">สถานที่ / ห้องประชุม</label>
+                    <input type="text" class="form-control form-control-custom" id="meetingLocation" placeholder="เช่น ห้องประชุม 1">
                 </div>
-            </div>
 
-            <div class="mb-3">
-                <label for="description" class="form-label">รายละเอียด</label>
-                <textarea class="form-control form-control-custom" id="description" rows="2"></textarea>
+                <div class="col-12">
+                    <label for="description" class="form-label fw-semibold">รายละเอียด / วาระการประชุม</label>
+                    <textarea class="form-control form-control-custom" id="description" rows="2" placeholder="ระบุรายละเอียดเพิ่มเติม หรือวาระสำคัญ"></textarea>
+                </div>
             </div>
         </form>
     </div>
 </div>
 
-<!-- Preset Selection -->
-<div class="card card-custom">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">ผู้เข้าร่วมการประชุม</h5>
-        <select class="form-select form-select-sm" style="width: auto;" id="presetSelect" onchange="loadPreset()">
-            <option value="">-- เลือก Preset --</option>
-        </select>
+<!-- Participant Selection Card -->
+<div class="card card-custom mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <h5 class="mb-0 d-flex align-items-center gap-2">
+            <svg class="svg-icon text-primary" viewBox="0 0 24 24">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            ผู้เข้าร่วมการประชุมและการจับคู่ Channel
+        </h5>
+        <div class="d-flex align-items-center gap-2">
+            <span class="text-muted-custom small d-none d-sm-inline">หรือโหลด:</span>
+            <select class="form-select form-control-custom form-select-sm" style="width: auto; min-width: 180px;" id="presetSelect" onchange="loadPreset()">
+                <option value="">-- เลือก Preset ที่บันทึกไว้ --</option>
+            </select>
+        </div>
     </div>
     <div class="card-body">
-        <!-- Add Participant Form -->
-        <div class="row mb-3">
+        <!-- Add Participant Row Form -->
+        <div class="row g-2 mb-4 p-3 bg-light rounded-3 border">
             <div class="col-md-4">
+                <label class="form-label small fw-semibold text-muted mb-1">ชื่อ-นามสกุล ผู้เข้าร่วม</label>
                 <input type="text" class="form-control form-control-custom" id="participantName"
-                    placeholder="ชื่อผู้เข้าร่วม">
+                    placeholder="เช่น สมชาย ใจดี">
             </div>
             <div class="col-md-3">
+                <label class="form-label small fw-semibold text-muted mb-1">บทบาท / ตำแหน่ง</label>
                 <input type="text" class="form-control form-control-custom" id="participantRole"
-                    placeholder="ตำแหน่ง (เช่น ประธาน, เลขา)">
+                    placeholder="เช่น ประธาน, กรรมการ">
             </div>
             <div class="col-md-3">
+                <label class="form-label small fw-semibold text-muted mb-1">Channel ไมโครโฟน</label>
                 <select class="form-select form-control-custom" id="participantChannel">
                     <option value="">-- เลือก Channel --</option>
                 </select>
             </div>
-            <div class="col-md-2">
+            <div class="col-md-2 d-flex align-items-end">
                 <button class="btn btn-primary-custom btn-custom w-100" onclick="addParticipant()">
-                    เพิ่ม
+                    <svg class="svg-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    <span>เพิ่ม</span>
                 </button>
             </div>
         </div>
 
         <!-- Participants Table -->
         <div class="table-responsive">
-            <table class="table table-custom">
+            <table class="table table-custom mb-0">
                 <thead>
                     <tr>
-                        <th>ชื่อ</th>
-                        <th>ตำแหน่ง</th>
-                        <th>Channel</th>
-                        <th style="width: 80px;">ลบ</th>
+                        <th style="padding-left: 1.25rem;">ชื่อผู้เข้าร่วม</th>
+                        <th>บทบาท</th>
+                        <th>Channel ไมโครโฟน</th>
+                        <th style="width: 80px; text-align: center;">จัดการ</th>
                     </tr>
                 </thead>
                 <tbody id="participantsTableBody">
                     <tr>
-                        <td colspan="4" class="text-center text-muted-custom">
-                            ยังไม่มีผู้เข้าร่วม
+                        <td colspan="4" class="text-center text-muted-custom py-4">
+                            ยังไม่มีผู้เข้าร่วม — เพิ่มผู้เข้าร่วมด้านบนหรือเลือกจาก Preset
                         </td>
                     </tr>
                 </tbody>
@@ -97,30 +124,32 @@
     </div>
 </div>
 
-<!-- Save Preset Option -->
-<div class="card card-custom">
+<!-- Save Preset Option Card -->
+<div class="card card-custom mb-4">
     <div class="card-body">
-        <div class="form-check mb-3">
-            <input class="form-check-input" type="checkbox" id="savePresetCheck" onchange="togglePresetName()">
-            <label class="form-check-label" for="savePresetCheck">
-                บันทึกเป็น Preset
+        <div class="form-check form-switch mb-2">
+            <input class="form-check-input" type="checkbox" role="switch" id="savePresetCheck" onchange="togglePresetName()">
+            <label class="form-check-label fw-semibold" for="savePresetCheck">
+                บันทึกรายชื่อและ Channel ชุดนี้เป็น Preset ไว้ใช้ซ้ำ
             </label>
         </div>
 
-        <div id="presetNameGroup" class="d-none">
-            <label for="presetName" class="form-label">ชื่อ Preset</label>
-            <input type="text" class="form-control form-control-custom" id="presetName" placeholder="ชื่อ Preset">
+        <div id="presetNameGroup" class="d-none mt-3">
+            <label for="presetName" class="form-label fw-semibold">ชื่อ Preset ใหม่</label>
+            <input type="text" class="form-control form-control-custom" id="presetName" placeholder="เช่น การประชุมทีมบริหาร หรือ คณะกรรมการชุดที่ 1">
         </div>
     </div>
 </div>
 
 <!-- Action Buttons -->
-<div class="text-end">
+<div class="text-end d-flex justify-content-end gap-2 mb-5">
     <button class="btn btn-secondary btn-custom" onclick="resetForm()">
-        ล้างข้อมูล
+        <svg class="svg-icon" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+        <span>ล้างข้อมูล</span>
     </button>
     <button class="btn btn-primary-custom btn-custom" onclick="saveMeeting()">
-        บันทึกการประชุม
+        <svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        <span>บันทึกการประชุม</span>
     </button>
 </div>
 {% endblock %}
@@ -266,8 +295,8 @@
         if (participants.length === 0) {
             tbody.innerHTML = `
             <tr>
-                <td colspan="4" class="text-center text-muted-custom">
-                    ยังไม่มีผู้เข้าร่วม
+                <td colspan="4" class="text-center text-muted-custom py-4">
+                    ยังไม่มีผู้เข้าร่วม — เพิ่มผู้เข้าร่วมด้านบนหรือเลือกจาก Preset
                 </td>
             </tr>
         `;
@@ -276,12 +305,19 @@
 
         tbody.innerHTML = participants.map((p, idx) => `
         <tr>
-            <td>${p.name}</td>
-            <td><span class="badge bg-info">${p.role || 'สมาชิก'}</span></td>
-            <td>${p.channel_name || '-'}</td>
-            <td>
-                <button class="btn btn-sm btn-danger" onclick="removeParticipant(${idx})">
-                    ลบ
+            <td style="padding-left: 1.25rem;">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="rounded-circle bg-primary-subtle text-primary d-inline-flex align-items-center justify-content-center fw-bold" style="width: 28px; height: 28px; font-size: 12px;">
+                        ${(p.name || 'P')[0].toUpperCase()}
+                    </span>
+                    <strong class="text-slate-800">${p.name}</strong>
+                </div>
+            </td>
+            <td><span class="badge bg-secondary-subtle text-secondary border px-2 py-1">${p.role || 'สมาชิก'}</span></td>
+            <td><span class="font-monospace text-slate-700">${p.channel_name || '-'}</span></td>
+            <td style="text-align: center;">
+                <button class="btn btn-sm btn-outline-danger btn-custom py-1 px-2" onclick="removeParticipant(${idx})" title="ลบผู้เข้าร่วม">
+                    <svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
             </td>
         </tr>

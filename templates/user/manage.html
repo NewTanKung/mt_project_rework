@@ -4,63 +4,87 @@
 
 {% block content %}
 <div class="page-header">
-    <h1>จัดการการประชุม</h1>
-    <p class="text-muted-custom">ดู แก้ไข ลบ และถอดเสียงการประชุม</p>
+    <h1>
+        <svg class="svg-icon text-primary" viewBox="0 0 24 24" style="width: 2rem; height: 2rem;">
+            <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+            <polyline points="2 17 12 22 22 17"/>
+            <polyline points="2 12 12 17 22 12"/>
+        </svg>
+        จัดการการประชุม
+    </h1>
+    <p class="text-muted-custom">ดูรายการประชุม ค้นหา ถอดเสียงด้วย AI จัดการเนื้อหา และส่งออกรายงานในรูปแบบต่างๆ</p>
 </div>
 
 <!-- Alert Container -->
 <div id="alertContainer"></div>
 
-<!-- Search and Filter -->
-<div class="card card-custom">
+<!-- Search and Filter Card -->
+<div class="card card-custom mb-4">
     <div class="card-body">
-        <div class="row">
-            <div class="col-md-6">
-                <input type="text" class="form-control form-control-custom" id="searchInput"
-                    placeholder="ค้นหาชื่อการประชุม..." onkeyup="searchMeetings()">
+        <div class="row g-3 align-items-center">
+            <div class="col-md-5">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0">
+                        <svg class="svg-icon text-muted" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    </span>
+                    <input type="text" class="form-control form-control-custom border-start-0" id="searchInput"
+                        placeholder="ค้นหาชื่อการประชุม..." onkeyup="searchMeetings()">
+                </div>
             </div>
             <div class="col-md-3">
                 <select class="form-select form-control-custom" id="statusFilter" onchange="filterByStatus()">
                     <option value="">ทุกสถานะ</option>
-                    <option value="registered">ล งทะเบียนแล้ว</option>
+                    <option value="registered">ลงทะเบียนแล้ว</option>
                     <option value="recording">กำลังบันทึก</option>
                     <option value="completed">เสร็จสิ้น</option>
                     <option value="transcribed">ถอดเสียงแล้ว</option>
                 </select>
             </div>
-            <div class="col-md-3 text-end">
-                <button class="btn btn-warning btn-custom me-2" onclick="clearAllTranscriptionJobs()">
-                    เคลียร์งานค้าง
+            <div class="col-md-4 text-md-end d-flex justify-content-md-end gap-2">
+                <button class="btn btn-outline-warning btn-custom" onclick="clearAllTranscriptionJobs()" title="ยกเลิกงานถอดเสียงที่ค้างอยู่">
+                    <svg class="svg-icon" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+                    <span>เคลียร์งานค้าง</span>
                 </button>
-                <button class="btn btn-primary-custom btn-custom" onclick="refreshMeetings()">
-                    รีเฟรช
+                <button class="btn btn-primary-custom btn-custom" onclick="refreshMeetings()" title="รีเฟรชข้อมูล">
+                    <svg class="svg-icon" viewBox="0 0 24 24"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                    <span>รีเฟรช</span>
                 </button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Meetings Table -->
+<!-- Meetings Table Card -->
 <div class="card card-custom">
-    <div class="card-header">
-        <h5 class="mb-0">รายการการประชุม</h5>
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 d-flex align-items-center gap-2">
+            <svg class="svg-icon text-primary" viewBox="0 0 24 24">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+            รายการการประชุมทั้งหมด
+        </h5>
+        <span class="badge bg-light text-slate-700 border" id="meetingsCountBadge">0 การประชุม</span>
     </div>
-    <div class="card-body">
+    <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-custom">
+            <table class="table table-custom mb-0">
                 <thead>
                     <tr>
-                        <th>ชื่อการประชุม</th>
+                        <th style="padding-left: 1.5rem;">ชื่อการประชุม</th>
                         <th>วันที่</th>
                         <th>เวลา</th>
                         <th>สถานะ</th>
-                        <th>จัดการ</th>
+                        <th style="padding-right: 1.5rem; text-align: right;">จัดการ</th>
                     </tr>
                 </thead>
                 <tbody id="meetingsTableBody">
                     <tr>
-                        <td colspan="5" class="text-center text-muted-custom">
-                            กำลังโหลด...
+                        <td colspan="5" class="text-center text-muted-custom py-4">
+                            <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                            กำลังโหลดข้อมูลการประชุม...
                         </td>
                     </tr>
                 </tbody>
@@ -71,39 +95,46 @@
 
 <!-- Transcribe Modal -->
 <div class="modal fade" id="transcribeModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">ถอดเสียงการประชุม</h5>
+                <h5 class="modal-title d-flex align-items-center gap-2">
+                    <svg class="svg-icon text-primary" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+                    ถอดเสียงการประชุมด้วย AI
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <input type="hidden" id="transcribeMeetingId">
 
                 <div class="mb-3">
-                    <label for="modelSelect" class="form-label">เลือกโมเดล</label>
+                    <label for="modelSelect" class="form-label fw-semibold">เลือกโมเดล Faster-Whisper</label>
                     <select class="form-select form-control-custom" id="modelSelect" required>
                         <!-- Models will be loaded here -->
                     </select>
-                    <small class="text-muted-custom">เลือกโมเดลที่ Admin ดาวน์โหลดไว้แล้ว</small>
+                    <small class="text-muted-custom">เลือกโมเดลที่ Admin ดาวน์โหลดไว้แล้วในเครื่อง</small>
                 </div>
 
                 <div class="mb-3">
-                    <label for="languageSelect" class="form-label">ภาษา</label>
+                    <label for="languageSelect" class="form-label fw-semibold">ภาษาหลักของการประชุม</label>
                     <select class="form-select form-control-custom" id="languageSelect">
-                        <option value="th">ไทย</option>
-                        <option value="en">อังกฤษ</option>
+                        <option value="th">ภาษาไทย (Thai)</option>
+                        <option value="en">ภาษาอังกฤษ (English)</option>
                     </select>
                 </div>
 
-                <div class="alert alert-info">
-                    <strong>หมายเหตุ:</strong> การถอดเสียงอาจใช้เวลานาน ขึ้นอยู่กับความยาวของการประชุมและโมเดลที่เลือก
+                <div class="alert alert-info d-flex align-items-start gap-2 mb-0">
+                    <svg class="svg-icon text-info flex-shrink-0 mt-1" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    <div>
+                        <strong>ข้อแนะนำ:</strong> การถอดเสียงทำงานแบบแยก Background Process คุณสามารถปิดหน้าต่างหรือทำกิจกรรมอื่นระหว่างการถอดเสียงได้
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+                <button type="button" class="btn btn-secondary btn-custom" data-bs-dismiss="modal">ยกเลิก</button>
                 <button type="button" class="btn btn-primary-custom btn-custom" onclick="startTranscription()">
-                    เริ่มถอดเสียง
+                    <svg class="svg-icon" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    <span>เริ่มถอดเสียง</span>
                 </button>
             </div>
         </div>
@@ -112,14 +143,22 @@
 
 <!-- View Details Modal -->
 <div class="modal fade" id="detailsModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">รายละเอียดการประชุม</h5>
+                <h5 class="modal-title d-flex align-items-center gap-2">
+                    <svg class="svg-icon text-primary" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    รายละเอียดและการถอดเสียง
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
-                <div id="meetingDetails">กำลังโหลด...</div>
+            <div class="modal-body p-4">
+                <div id="meetingDetails">
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <p class="text-muted-custom mt-2">กำลังโหลดรายละเอียดการประชุม...</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -127,39 +166,45 @@
 
 <!-- Edit Transcription Modal -->
 <div class="modal fade" id="editModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">✏️ แก้ไขการถอดเสียง</h5>
+                <h5 class="modal-title d-flex align-items-center gap-2">
+                    <svg class="svg-icon text-warning" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    แก้ไขข้อความถอดเสียง
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <input type="hidden" id="editVoiceId">
                 <input type="hidden" id="editMeetingId">
 
-                <div class="row mb-3">
+                <div class="row g-3 mb-3">
                     <div class="col-md-6">
-                        <label class="form-label">ชื่อผู้พูด</label>
-                        <input type="text" class="form-control" id="editSpeaker">
+                        <label class="form-label fw-semibold">ชื่อผู้พูด</label>
+                        <input type="text" class="form-control form-control-custom" id="editSpeaker">
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">เวลาเริ่ม</label>
-                        <input type="text" class="form-control" id="editStart" placeholder="00:01:23">
+                        <label class="form-label fw-semibold">เวลาเริ่ม</label>
+                        <input type="text" class="form-control form-control-custom font-monospace" id="editStart" placeholder="00:01:23">
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">เวลาสิ้นสุด</label>
-                        <input type="text" class="form-control" id="editEnd" placeholder="00:02:45">
+                        <label class="form-label fw-semibold">เวลาสิ้นสุด</label>
+                        <input type="text" class="form-control form-control-custom font-monospace" id="editEnd" placeholder="00:02:45">
                     </div>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">เนื้อหา</label>
-                    <textarea class="form-control" id="editContent" rows="8"></textarea>
+                    <label class="form-label fw-semibold">เนื้อหาการพูด</label>
+                    <textarea class="form-control form-control-custom" id="editContent" rows="8"></textarea>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
-                <button type="button" class="btn btn-primary" onclick="saveEdit()">💾 บันทึก</button>
+                <button type="button" class="btn btn-secondary btn-custom" data-bs-dismiss="modal">ยกเลิก</button>
+                <button type="button" class="btn btn-primary-custom btn-custom" onclick="saveEdit()">
+                    <svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                    <span>บันทึกการแก้ไข</span>
+                </button>
             </div>
         </div>
     </div>
@@ -209,12 +254,19 @@
     // Render meetings table
     function renderMeetings() {
         const tbody = document.getElementById('meetingsTableBody');
+        const countBadge = document.getElementById('meetingsCountBadge');
+        if (countBadge) {
+            countBadge.textContent = `${meetings.length} การประชุม`;
+        }
 
         if (meetings.length === 0) {
             tbody.innerHTML = `
             <tr>
-                <td colspan="5" class="text-center text-muted-custom">
-                    ไม่พบข้อมูล
+                <td colspan="5" class="text-center text-muted-custom py-4">
+                    <div class="p-3">
+                        <svg class="svg-icon text-muted mb-2" viewBox="0 0 24 24" style="width: 2.5rem; height: 2.5rem;"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                        <div>ไม่พบข้อมูลการประชุมที่ค้นหา</div>
+                    </div>
                 </td>
             </tr>
         `;
@@ -223,38 +275,42 @@
 
         tbody.innerHTML = meetings.map(m => `
         <tr data-meeting-id="${m.meeting_id}">
-            <td>
-                <strong>${m.meeting_name}</strong>
-                ${m.description ? `<br><small class="text-muted">${m.description}</small>` : ''}
+            <td style="padding-left: 1.5rem;">
+                <div class="fw-semibold text-slate-900">${m.meeting_name}</div>
+                ${m.description ? `<small class="text-muted-custom">${m.description}</small>` : ''}
             </td>
-            <td>${m.meeting_date}</td>
-            <td>${m.start_time || '-'} - ${m.end_time || '-'}</td>
+            <td><span class="text-slate-700">${m.meeting_date}</span></td>
+            <td><span class="text-slate-500 font-monospace small">${m.start_time || '-'} - ${m.end_time || '-'}</span></td>
             <td>
                 <span class="badge badge-custom ${getStatusClass(m.status)}">
                     ${getStatusText(m.status)}
                 </span>
             </td>
-            <td>
+            <td style="padding-right: 1.5rem; text-align: right;">
                 <div class="btn-group btn-group-sm">
-                    <button class="btn btn-info" onclick="viewDetails(${m.meeting_id})" 
+                    <button class="btn btn-outline-info btn-custom py-1 px-2" onclick="viewDetails(${m.meeting_id})" 
                             title="ดูรายละเอียด">
-                        ดู
+                        <svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        <span>ดู</span>
                     </button>
                     ${m.status === 'completed' && !m.has_transcription ? `
-                        <button class="btn btn-primary" onclick="openTranscribeModal(${m.meeting_id})"
+                        <button class="btn btn-outline-primary btn-custom py-1 px-2" onclick="openTranscribeModal(${m.meeting_id})"
                                 title="ถอดเสียง">
-                            ถอดเสียง
+                            <svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+                            <span>ถอดเสียง</span>
                         </button>
                     ` : ''}
                     ${m.has_transcription ? `
-                        <button class="btn btn-warning" onclick="deleteTranscription(${m.meeting_id})"
+                        <button class="btn btn-outline-warning btn-custom py-1 px-2" onclick="deleteTranscription(${m.meeting_id})"
                                 title="ลบถอดเสียง">
-                            ลบถอดเสียง
+                            <svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                            <span>ลบถอดเสียง</span>
                         </button>
                     ` : ''}
-                    <button class="btn btn-danger" onclick="deleteMeeting(${m.meeting_id})"
+                    <button class="btn btn-outline-danger btn-custom py-1 px-2" onclick="deleteMeeting(${m.meeting_id})"
                             title="ลบการประชุม">
-                        ลบ
+                        <svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        <span>ลบ</span>
                     </button>
                 </div>
             </td>
@@ -364,151 +420,170 @@
 
                 // Build tabs navigation
                 let html = `
-                <ul class="nav nav-tabs" id="meetingTabs" role="tablist">
+                <ul class="nav nav-tabs nav-tabs-custom mb-3" id="meetingTabs" role="tablist">
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="info-tab" data-bs-toggle="tab" data-bs-target="#info-content" type="button">ข้อมูลการประชุม</button>
+                        <button class="nav-link active" id="info-tab" data-bs-toggle="tab" data-bs-target="#info-content" type="button">
+                            📋 ข้อมูลการประชุม
+                        </button>
                     </li>`;
 
                 if (hasTranscriptions) {
                     html += `
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="transcript-tab" data-bs-toggle="tab" data-bs-target="#transcript-content" type="button">ผลการถอดเสียง (${m.transcriptions.length})</button>
+                        <button class="nav-link" id="transcript-tab" data-bs-toggle="tab" data-bs-target="#transcript-content" type="button">
+                            🎙️ ผลการถอดเสียง (${m.transcriptions.length})
+                        </button>
                     </li>`;
                 }
 
-                // Add Participants Tab
                 html += `
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="participants-tab" data-bs-toggle="tab" data-bs-target="#participants-content" type="button" onclick="loadAttendanceSummary(${m.meeting_id})">ผู้เข้าร่วม</button>
+                        <button class="nav-link" id="participants-tab" data-bs-toggle="tab" data-bs-target="#participants-content" type="button" onclick="loadAttendanceSummary(${m.meeting_id})">
+                            👥 ผู้เข้าร่วม & เช็คชื่อ
+                        </button>
                     </li>
                 </ul>
                 
-                <div class="tab-content mt-3">
+                <div class="tab-content">
+                    <!-- Tab 1: Info Content -->
                     <div class="tab-pane fade show active" id="info-content" role="tabpanel">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <p><strong>ชื่อการประชุม:</strong> ${m.meeting_name}</p>
-                                <p><strong>วันที่:</strong> ${m.meeting_date}</p>
-                                <p><strong>สถานที่:</strong> ${m.meeting_location || '-'}</p>
-                                <p><strong>เวลาเริ่ม:</strong> ${m.start_time || '-'}</p>
-                                <p><strong>เวลาสิ้นสุด:</strong> ${m.end_time || '-'}</p>
-                                <p><strong>เวลารวม:</strong> ${m.totaltime || '-'}</p>
+                        <div class="card card-custom mb-3">
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="mb-2"><span class="text-muted-custom">ชื่อการประชุม:</span> <strong class="text-slate-900">${m.meeting_name}</strong></div>
+                                        <div class="mb-2"><span class="text-muted-custom">วันที่:</span> <span class="text-slate-700">${m.meeting_date}</span></div>
+                                        <div class="mb-2"><span class="text-muted-custom">สถานที่:</span> <span class="text-slate-700">${m.meeting_location || '-'}</span></div>
+                                        <div class="mb-2"><span class="text-muted-custom">เวลา:</span> <span class="font-monospace text-slate-700">${m.start_time || '-'} ถึง ${m.end_time || '-'}</span></div>
+                                        <div><span class="text-muted-custom">เวลารวม:</span> <span class="font-monospace fw-semibold text-primary">${m.totaltime || '-'}</span></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-2"><span class="text-muted-custom">สถานะ:</span> <span class="badge badge-custom ${getStatusClass(m.status)}">${getStatusText(m.status)}</span></div>
+                                        <div class="mb-2"><span class="text-muted-custom">รายละเอียด:</span> <p class="text-slate-700 mb-0">${m.description || '-'}</p></div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="col-md-6">
-                                <p><strong>สถานะ:</strong> <span class="badge ${getStatusClass(m.status)}">${getStatusText(m.status)}</span></p>
-                                <p><strong>รายละเอียด:</strong> ${m.description || '-'}</p>
-            
-                    <!-- Participants Tab -->
-                    <div class="tab-pane fade" id="participants" role="tabpanel">
-                        <div id="attendanceSummary" class="mb-3 mt-3"></div>
-                        <div class="table-responsive">
-                            <table class="table table-custom">
-                                <thead>
-                                    <tr>
-                                        <th>ชื่อ</th>
-                                        <th>ตำแหน่ง</th>
-                                        <th>สถานะ</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="attendanceList">
-                                    <tr><td colspan="3" class="text-center">กำลังโหลด...</td></tr>
-                                </tbody>
-                            </table>
                         </div>
-                    </div>
-                </div>
+
+                        <div class="card card-custom">
+                            <div class="card-header">
+                                <h6 class="mb-0">ผู้เข้าร่วมที่ลงทะเบียนไว้ (${m.participants ? m.participants.length : 0} คน)</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-flex flex-wrap gap-2">
+                                    ${m.participants && m.participants.length > 0 ? m.participants.map(p => `
+                                        <div class="badge bg-light text-slate-700 border p-2 d-flex align-items-center gap-2">
+                                            <span class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center" style="width: 22px; height: 22px; font-size: 11px;">
+                                                ${(p.participant_name || 'P')[0].toUpperCase()}
+                                            </span>
+                                            <span>${p.participant_name}</span>
+                                            <small class="text-muted">(${p.channel_name || 'ไม่ระบุ channel'})</small>
+                                        </div>
+                                    `).join('') : '<span class="text-muted-custom">ไม่มีข้อมูลผู้เข้าร่วม</span>'}
+                                </div>
+                            </div>
                         </div>
-                        <hr>
-                        <h6>ผู้เข้าร่วม (${m.participants.length} คน)</h6>
-                        <ul>
-                            ${m.participants.map(p => `<li>${p.participant_name} - ${p.channel_name || 'ไม่ระบุ channel'}</li>`).join('')}
-                        </ul>
                     </div>`;
 
                 if (hasTranscriptions) {
                     html += `
                     <div class="tab-pane fade" id="transcript-content" role="tabpanel">
-                        <!-- Search and Export -->
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <div class="input-group">
-                                    <input type="text" class="form-control" id="transcriptSearch" 
-                                           placeholder="🔍 ค้นหาในการถอดเสียง...">
-                                    <button class="btn btn-outline-secondary" type="button" 
-                                            onclick="clearTranscriptSearch()">❌</button>
-                                </div>
-                                <div id="searchResults" class="mt-2 text-muted small"></div>
-                            </div>
-                            <div class="col-md-6 text-end">
-                                <div class="btn-group">
-                                    <button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown">
-                                        📥 Export
-                                    </button>
-                                    <ul class="dropdown-menu dropdown-menu-end">
-                                        <li><a class="dropdown-item" href="/api/user/meetings/${meetingId}/export_pdf">📄 PDF</a></li>
-                                        <li><a class="dropdown-item" href="/api/user/meetings/${meetingId}/export_docx">📘 Word (.docx)</a></li>
-                                        <li><a class="dropdown-item" href="/api/user/meetings/${meetingId}/export_txt">📝 Text (.txt)</a></li>
-                                        <li><a class="dropdown-item" href="/api/user/meetings/${meetingId}/export_srt">🎬 Subtitle (.srt)</a></li>
-                                        <li><hr class="dropdown-divider"></li>
-                                        <li><a class="dropdown-item" href="/api/user/meetings/${meetingId}/download_json">💾 JSON</a></li>
-                                    </ul>
+                        <!-- Search and Export Toolbar -->
+                        <div class="card card-custom mb-3">
+                            <div class="card-body p-3">
+                                <div class="row g-2 align-items-center">
+                                    <div class="col-md-6">
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-white border-end-0">
+                                                <svg class="svg-icon text-muted" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                                            </span>
+                                            <input type="text" class="form-control form-control-custom border-start-0" id="transcriptSearch" 
+                                                   placeholder="ค้นหาข้อความในการถอดเสียง...">
+                                            <button class="btn btn-outline-secondary" type="button" 
+                                                    onclick="clearTranscriptSearch()">✕</button>
+                                        </div>
+                                        <div id="searchResults" class="mt-1 text-muted small"></div>
+                                    </div>
+                                    <div class="col-md-6 text-md-end">
+                                        <div class="btn-group">
+                                            <button type="button" class="btn btn-success btn-custom dropdown-toggle" data-bs-toggle="dropdown">
+                                                <svg class="svg-icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                                <span>ส่งออก (Export)</span>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                                                <li><a class="dropdown-item py-2" href="/api/user/meetings/${meetingId}/export_pdf">📄 ส่งออกเป็น PDF (.pdf)</a></li>
+                                                <li><a class="dropdown-item py-2" href="/api/user/meetings/${meetingId}/export_docx">📘 ส่งออกเป็น Word (.docx)</a></li>
+                                                <li><a class="dropdown-item py-2" href="/api/user/meetings/${meetingId}/export_txt">📝 ส่งออกเป็น Text (.txt)</a></li>
+                                                <li><a class="dropdown-item py-2" href="/api/user/meetings/${meetingId}/export_srt">🎬 ส่งออกเป็น Subtitle (.srt)</a></li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li><a class="dropdown-item py-2" href="/api/user/meetings/${meetingId}/download_json">💾 ดาวน์โหลดข้อมูลดิบ JSON</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <div id="transcriptionList" style="max-height: 400px; overflow-y: auto;">`;
+
+                        <div id="transcriptionList" style="max-height: 480px; overflow-y: auto; padding-right: 4px;">`;
 
                     m.transcriptions.forEach((t, index) => {
-                        const speakerName = t.speaker_name || 'ไม่ระบุ';
+                        const speakerName = t.speaker_name || 'ไม่ระบุผู้พูด';
                         const timeRange = (t.start_time && t.end_time) ? `${t.start_time} - ${t.end_time}` : '';
-                        const bgClass = index % 2 === 0 ? 'bg-light' : '';
                         const textContent = t.content || t.text || '-';
 
                         html += `
-                        <div class="card mb-2 ${bgClass} transcription-item" 
+                        <div class="card card-custom mb-3 transcription-item" 
                              data-text="${textContent.toLowerCase()}"
                              data-voice-id="${t.voice_id || 0}">
-                            <div class="card-body py-2">
-                                <div class="d-flex justify-content-between align-items-start mb-1">
-                                    <strong class="text-primary">${speakerName}</strong>
-                                    <div>
-                                        ${timeRange ? `<small class="text-muted me-2">${timeRange}</small>` : ''}
-                                        <button class="btn btn-sm btn-outline-primary btn-edit-trans" 
-                                                onclick="openEditModal(${t.voice_id || 0}, '${speakerName.replace(/'/g, "\\'")}', '${t.start_time || ''}', '${t.end_time || ''}', \`${textContent.replace(/`/g, '').replace(/\$/g, '').replace(/'/g, "\\'")}\`, ${meetingId})" 
-                                                title="แก้ไข">
-                                            ✏️
-                                        </button>
+                            <div class="card-body p-3">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">
+                                            🎤 ${speakerName}
+                                        </span>
+                                        ${timeRange ? `<span class="badge bg-light text-slate-500 font-monospace border">${timeRange}</span>` : ''}
                                     </div>
+                                    <button class="btn btn-sm btn-outline-primary btn-custom py-0 px-2 btn-edit-trans" 
+                                            onclick="openEditModal(${t.voice_id || 0}, '${speakerName.replace(/'/g, "\\'")}', '${t.start_time || ''}', '${t.end_time || ''}', \`${textContent.replace(/`/g, '').replace(/\$/g, '').replace(/'/g, "\\'")}\`, ${meetingId})" 
+                                            title="แก้ไข">
+                                        <svg class="svg-icon" viewBox="0 0 24 24" style="width: 12px; height: 12px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                        <span>แก้ไข</span>
+                                    </button>
                                 </div>
-                                <p class="mb-0 transcription-text">${textContent}</p>
+                                <p class="mb-0 transcription-text text-slate-800" style="line-height: 1.6; white-space: pre-wrap;">${textContent}</p>
                             </div>
                         </div>`;
                     });
 
                     html += `
                         </div>
-                    </div>`; // Close transcript list and tab-pane
+                    </div>`;
                 }
 
                 // Add Participants Tab Content Pane
                 html += `
                     <div class="tab-pane fade" id="participants-content" role="tabpanel">
-                        <div id="attendanceSummary_Manage" class="mb-3 mt-3"></div>
-                        <div class="table-responsive">
-                            <table class="table table-custom">
-                                <thead>
-                                    <tr>
-                                        <th>ชื่อ</th>
-                                        <th>ตำแหน่ง</th>
-                                        <th>สถานะ</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="attendanceList_Manage">
-                                    <tr><td colspan="3" class="text-center">กำลังโหลด...</td></tr>
-                                </tbody>
-                            </table>
+                        <div id="attendanceSummary_Manage" class="mb-3"></div>
+                        <div class="card card-custom">
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-custom mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th style="padding-left: 1.5rem;">ชื่อ-นามสกุล</th>
+                                                <th>บทบาท</th>
+                                                <th style="padding-right: 1.5rem;">สถานะการเข้าประชุม</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="attendanceList_Manage">
+                                            <tr><td colspan="3" class="text-center text-muted-custom py-3">กำลังโหลด...</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>`; // Close tab-content
+                </div>`;
 
                 document.getElementById('meetingDetails').innerHTML = html;
                 detailsModal.show();

@@ -4,43 +4,53 @@
 
 {% block content %}
 <div class="page-header">
-    <h1>Channel Mapping</h1>
-    <p class="text-muted-custom">กำหนดช่องเสียงและเชื่อมต่อกับอุปกรณ์</p>
+    <h1>
+        <svg class="svg-icon text-primary" viewBox="0 0 24 24" style="width: 2rem; height: 2rem;">
+            <circle cx="12" cy="12" r="2"/>
+            <path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"/>
+        </svg>
+        Channel Mapping
+    </h1>
+    <p class="text-muted-custom">กำหนดช่องสัญญาณเสียง (Channel) และผูกกับฮาร์ดแวร์ไมโครโฟนสำหรับจัดสรรให้ผู้เข้าร่วม</p>
 </div>
 
 <!-- Alert Container -->
 <div id="alertContainer"></div>
 
-<!-- Add Channel Form -->
-<div class="card card-custom">
-    <div class="card-header">
+<!-- Add Channel Form Card -->
+<div class="card card-custom mb-4">
+    <div class="card-header d-flex align-items-center gap-2">
+        <svg class="svg-icon text-primary" viewBox="0 0 24 24">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
         <h5 class="mb-0">เพิ่ม Channel ใหม่</h5>
     </div>
     <div class="card-body">
         <form id="channelForm" onsubmit="addChannel(event)">
-            <div class="row">
-                <div class="col-md-3">
-                    <label class="form-label">ชื่อ Channel</label>
+            <div class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">ชื่อ Channel <span class="text-danger">*</span></label>
                     <input type="text" class="form-control form-control-custom" id="channelName" required
-                        placeholder="เช่น ไมค์ประธาน">
+                        placeholder="เช่น ไมค์ประธาน, ไมค์โต๊ะกลม A">
                 </div>
-                <div class="col-md-3">
-                    <label class="form-label">เลือกอุปกรณ์</label>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">เลือกอุปกรณ์เสียง <span class="text-danger">*</span></label>
                     <select class="form-select form-control-custom" id="deviceSelect" required
                         onchange="updateChannelOptions()">
                         <option value="">-- เลือกอุปกรณ์ --</option>
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <label class="form-label">Channel Index</label>
-                    <select class="form-select form-control-custom" id="channelIndexSelect" required>
+                    <label class="form-label fw-semibold">Channel Index <span class="text-danger">*</span></label>
+                    <select class="form-select form-control-custom font-monospace" id="channelIndexSelect" required>
                         <option value="">-- เลือก --</option>
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <label class="form-label">&nbsp;</label>
                     <button type="submit" class="btn btn-primary-custom btn-custom w-100">
-                        เพิ่ม
+                        <svg class="svg-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        <span>เพิ่ม</span>
                     </button>
                 </div>
             </div>
@@ -48,28 +58,36 @@
     </div>
 </div>
 
-<!-- Channels Table -->
+<!-- Channels Table Card -->
 <div class="card card-custom">
-    <div class="card-header">
-        <h5 class="mb-0">รายการ Channels</h5>
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 d-flex align-items-center gap-2">
+            <svg class="svg-icon text-primary" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10"/>
+                <circle cx="12" cy="12" r="3"/>
+            </svg>
+            รายการ Channels ทั้งหมด
+        </h5>
+        <span class="badge bg-light text-slate-700 border" id="channelsCountBadge">0 Channels</span>
     </div>
-    <div class="card-body">
+    <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-custom">
+            <table class="table table-custom mb-0">
                 <thead>
                     <tr>
-                        <th>ชื่อ Channel</th>
-                        <th>อุปกรณ์</th>
+                        <th style="padding-left: 1.5rem;">ชื่อ Channel</th>
+                        <th>อุปกรณ์ที่ผูกไว้</th>
                         <th>Device Index</th>
                         <th>Channel Index</th>
                         <th>สถานะ</th>
-                        <th>จัดการ</th>
+                        <th style="padding-right: 1.5rem; text-align: right;">จัดการ</th>
                     </tr>
                 </thead>
                 <tbody id="channelsTableBody">
                     <tr>
-                        <td colspan="6" class="text-center text-muted-custom">
-                            กำลังโหลด...
+                        <td colspan="6" class="text-center text-muted-custom py-4">
+                            <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                            กำลังโหลดรายการ Channel...
                         </td>
                     </tr>
                 </tbody>
@@ -80,35 +98,41 @@
 
 <!-- Edit Modal -->
 <div class="modal fade" id="editModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">แก้ไข Channel</h5>
+                <h5 class="modal-title d-flex align-items-center gap-2">
+                    <svg class="svg-icon text-primary" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    แก้ไขการกำหนดค่า Channel
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <input type="hidden" id="editChannelId">
                 <div class="mb-3">
-                    <label class="form-label">ชื่อ Channel</label>
+                    <label class="form-label fw-semibold">ชื่อ Channel</label>
                     <input type="text" class="form-control form-control-custom" id="editChannelName" required>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">เลือกอุปกรณ์</label>
+                    <label class="form-label fw-semibold">เลือกอุปกรณ์เสียง</label>
                     <select class="form-select form-control-custom" id="editDeviceSelect"
                         onchange="updateEditChannelOptions()" required>
                         <option value="">-- เลือกอุปกรณ์ --</option>
                     </select>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Channel Index</label>
-                    <select class="form-select form-control-custom" id="editChannelIndexSelect" required>
+                    <label class="form-label fw-semibold">Channel Index</label>
+                    <select class="form-select form-control-custom font-monospace" id="editChannelIndexSelect" required>
                         <option value="">-- เลือก --</option>
                     </select>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
-                <button type="button" class="btn btn-primary-custom btn-custom" onclick="saveEdit()">บันทึก</button>
+                <button type="button" class="btn btn-secondary btn-custom" data-bs-dismiss="modal">ยกเลิก</button>
+                <button type="button" class="btn btn-primary-custom btn-custom" onclick="saveEdit()">
+                    <svg class="svg-icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span>บันทึกการแก้ไข</span>
+                </button>
             </div>
         </div>
     </div>
@@ -221,12 +245,16 @@
     // Render channels table
     function renderChannels() {
         const tbody = document.getElementById('channelsTableBody');
+        const countBadge = document.getElementById('channelsCountBadge');
+        if (countBadge) {
+            countBadge.textContent = `${channels.length} Channels`;
+        }
 
         if (channels.length === 0) {
             tbody.innerHTML = `
             <tr>
-                <td colspan="6" class="text-center text-muted-custom">
-                    ไม่มีข้อมูล
+                <td colspan="6" class="text-center text-muted-custom py-4">
+                    ยังไม่มี Channel ที่กำหนด — เพิ่ม Channel ใหม่จากแบบฟอร์มด้านบน
                 </td>
             </tr>
         `;
@@ -235,22 +263,33 @@
 
         tbody.innerHTML = channels.map(ch => `
         <tr>
-            <td>${ch.name}</td>
-            <td>${ch.device_name}</td>
-            <td>${ch.device_index}</td>
-            <td>${ch.channel_index}</td>
+            <td style="padding-left: 1.5rem;">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="rounded-circle bg-primary-subtle text-primary d-inline-flex align-items-center justify-content-center" style="width: 24px; height: 24px;">
+                        <svg class="svg-icon" viewBox="0 0 24 24" style="width: 12px; height: 12px;"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+                    </span>
+                    <strong class="text-slate-800">${ch.name}</strong>
+                </div>
+            </td>
+            <td><span class="text-slate-700">${ch.device_name}</span></td>
+            <td><span class="badge bg-light text-slate-700 font-monospace border px-2 py-1">Device #${ch.device_index}</span></td>
+            <td><span class="badge bg-primary-subtle text-primary font-monospace border border-primary-subtle px-2 py-1">Ch ${ch.channel_index}</span></td>
             <td>
-                <span class="badge badge-custom ${ch.is_active ? 'bg-success' : 'bg-secondary'}">
+                <span class="badge badge-custom ${ch.is_active ? 'badge-success' : 'bg-secondary'}">
                     ${ch.is_active ? 'ใช้งาน' : 'ปิดใช้'}
                 </span>
             </td>
-            <td>
-                <button class="btn btn-sm btn-primary" onclick="editChannel(${ch.id}, '${ch.name}')">
-                    แก้ไข
-                </button>
-                <button class="btn btn-sm btn-danger" onclick="deleteChannel(${ch.id})">
-                    ลบ
-                </button>
+            <td style="padding-right: 1.5rem; text-align: right;">
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-primary btn-custom py-1 px-2" onclick="editChannel(${ch.id}, '${ch.name}')" title="แก้ไข">
+                        <svg class="svg-icon" viewBox="0 0 24 24" style="width: 13px; height: 13px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        <span>แก้ไข</span>
+                    </button>
+                    <button class="btn btn-outline-danger btn-custom py-1 px-2" onclick="deleteChannel(${ch.id})" title="ลบ">
+                        <svg class="svg-icon" viewBox="0 0 24 24" style="width: 13px; height: 13px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        <span>ลบ</span>
+                    </button>
+                </div>
             </td>
         </tr>
     `).join('');

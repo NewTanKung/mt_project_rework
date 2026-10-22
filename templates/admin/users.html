@@ -3,42 +3,54 @@
 {% block title %}ผู้ใช้{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <h1>จัดการผู้ใช้</h1>
-    <p class="text-muted-custom">เพิ่ม แก้ไข และลบผู้ใช้งานระบบ</p>
+<div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+        <h1>
+            <svg class="svg-icon text-primary" viewBox="0 0 24 24" style="width: 2rem; height: 2rem;">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            จัดการผู้ใช้งานระบบ
+        </h1>
+        <p class="text-muted-custom mb-0">เพิ่ม บัญชีผู้ใช้ กำหนดสิทธิ์การเข้าถึง (Admin / User) และรีเซ็ตรหัสผ่าน</p>
+    </div>
+    <button class="btn btn-primary-custom btn-custom" data-bs-toggle="modal" data-bs-target="#userModal"
+        onclick="openAddModal()">
+        <svg class="svg-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span>เพิ่มผู้ใช้ใหม่</span>
+    </button>
 </div>
 
 <!-- Alert Container -->
 <div id="alertContainer"></div>
 
-<!-- Add Button -->
-<div class="mb-3">
-    <button class="btn btn-primary-custom btn-custom" data-bs-toggle="modal" data-bs-target="#userModal"
-        onclick="openAddModal()">
-        ➕ เพิ่มผู้ใช้
-    </button>
-</div>
-
-<!-- Users Table -->
+<!-- Users Table Card -->
 <div class="card card-custom">
-    <div class="card-header">
-        <h5 class="mb-0">รายการผู้ใช้</h5>
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 d-flex align-items-center gap-2">
+            <svg class="svg-icon text-primary" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            รายชื่อผู้ใช้งานทั้งหมด
+        </h5>
+        <span class="badge bg-light text-slate-700 border" id="usersCountBadge">0 บัญชี</span>
     </div>
-    <div class="card-body">
+    <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-custom">
+            <table class="table table-custom mb-0">
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Username</th>
-                        <th>Role</th>
-                        <th>จัดการ</th>
+                        <th style="padding-left: 1.5rem; width: 80px;">ID</th>
+                        <th>ชื่อผู้ใช้ (Username)</th>
+                        <th>สิทธิ์การใช้งาน (Role)</th>
+                        <th style="padding-right: 1.5rem; text-align: right;">จัดการ</th>
                     </tr>
                 </thead>
                 <tbody id="usersTableBody">
                     <tr>
-                        <td colspan="4" class="text-center text-muted-custom">
-                            กำลังโหลด...
+                        <td colspan="4" class="text-center text-muted-custom py-4">
+                            <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                            กำลังโหลดรายชื่อผู้ใช้...
                         </td>
                     </tr>
                 </tbody>
@@ -49,10 +61,13 @@
 
 <!-- User Modal -->
 <div class="modal fade" id="userModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalTitle">เพิ่มผู้ใช้</h5>
+                <h5 class="modal-title d-flex align-items-center gap-2" id="modalTitle">
+                    <svg class="svg-icon text-primary" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    เพิ่มผู้ใช้ใหม่
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -61,30 +76,43 @@
                     <input type="hidden" id="isEdit" value="false">
 
                     <div class="mb-3">
-                        <label for="username" class="form-label">Username</label>
-                        <input type="text" class="form-control form-control-custom" id="username" required>
+                        <label for="username" class="form-label fw-semibold">ชื่อผู้ใช้ (Username) <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white">
+                                <svg class="svg-icon text-muted" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                            </span>
+                            <input type="text" class="form-control form-control-custom" id="username" placeholder="เช่น user01" required>
+                        </div>
                     </div>
 
                     <div class="mb-3">
-                        <label for="password" class="form-label">Password</label>
-                        <input type="password" class="form-control form-control-custom" id="password" required>
+                        <label for="password" class="form-label fw-semibold">รหัสผ่าน (Password) <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white">
+                                <svg class="svg-icon text-muted" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                            </span>
+                            <input type="password" class="form-control form-control-custom" id="password" required>
+                        </div>
                         <small class="text-muted-custom" id="passwordHint">
-                            ใส่รหัสผ่านใหม่ หรือเว้นว่างถ้าไม่ต้องการเปลี่ยน
+                            ใส่รหัสผ่านใหม่ หรือเว้นว่างไว้หากไม่ต้องการเปลี่ยนแปลงรหัสผ่านเดิม
                         </small>
                     </div>
 
                     <div class="mb-3">
-                        <label for="role" class="form-label">Role</label>
+                        <label for="role" class="form-label fw-semibold">ระดับสิทธิ์ (Role) <span class="text-danger">*</span></label>
                         <select class="form-select form-control-custom" id="role" required>
-                            <option value="user">User</option>
-                            <option value="admin">Admin</option>
+                            <option value="user">User (ผู้ใช้งานทั่วไป บันทึกและจัดการการประชุม)</option>
+                            <option value="admin">Admin (ผู้ดูแลระบบ จัดการอุปกรณ์และโมเดล)</option>
                         </select>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
-                <button type="button" class="btn btn-primary-custom btn-custom" onclick="saveUser()">บันทึก</button>
+                <button type="button" class="btn btn-secondary btn-custom" data-bs-dismiss="modal">ยกเลิก</button>
+                <button type="button" class="btn btn-primary-custom btn-custom" onclick="saveUser()">
+                    <svg class="svg-icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span>บันทึกผู้ใช้</span>
+                </button>
             </div>
         </div>
     </div>
@@ -116,12 +144,16 @@
     // Render users table
     function renderUsers() {
         const tbody = document.getElementById('usersTableBody');
+        const countBadge = document.getElementById('usersCountBadge');
+        if (countBadge) {
+            countBadge.textContent = `${users.length} บัญชี`;
+        }
 
         if (users.length === 0) {
             tbody.innerHTML = `
             <tr>
-                <td colspan="4" class="text-center text-muted-custom">
-                    ไม่มีผู้ใช้
+                <td colspan="4" class="text-center text-muted-custom py-4">
+                    ยังไม่มีผู้ใช้งาน — กด "เพิ่มผู้ใช้ใหม่" เพื่อสร้างบัญชีแรก
                 </td>
             </tr>
         `;
@@ -130,21 +162,33 @@
 
         tbody.innerHTML = users.map(user => `
         <tr>
-            <td>${user.id}</td>
-            <td>${user.username}</td>
+            <td style="padding-left: 1.5rem;"><span class="font-monospace text-slate-500">#${user.id}</span></td>
             <td>
-                <span class="badge badge-custom ${user.role === 'admin' ? 'bg-danger' : 'bg-primary'}">
-                    ${user.role}
-                </span>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="rounded-circle ${user.role === 'admin' ? 'bg-danger-subtle text-danger' : 'bg-primary-subtle text-primary'} d-inline-flex align-items-center justify-content-center fw-bold" style="width: 28px; height: 28px; font-size: 12px;">
+                        ${(user.username || 'U')[0].toUpperCase()}
+                    </span>
+                    <strong class="text-slate-800">${user.username}</strong>
+                    ${user.id === 1 ? '<span class="badge bg-light text-slate-500 border small">Master</span>' : ''}
+                </div>
             </td>
             <td>
-                <button class="btn btn-sm btn-primary" onclick="editUser(${user.id}, '${user.username}', '${user.role}')">
-                    แก้ไข
-                </button>
-                <button class="btn btn-sm btn-danger" onclick="deleteUser(${user.id})" 
-                        ${user.id === 1 ? 'disabled' : ''}>
-                    ลบ
-                </button>
+                <span class="badge badge-custom ${user.role === 'admin' ? 'badge-danger' : 'badge-primary'}">
+                    ${user.role.toUpperCase()}
+                </span>
+            </td>
+            <td style="padding-right: 1.5rem; text-align: right;">
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-primary btn-custom py-1 px-2" onclick="editUser(${user.id}, '${user.username}', '${user.role}')" title="แก้ไข">
+                        <svg class="svg-icon" viewBox="0 0 24 24" style="width: 13px; height: 13px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        <span>แก้ไข</span>
+                    </button>
+                    <button class="btn btn-outline-danger btn-custom py-1 px-2" onclick="deleteUser(${user.id})" 
+                            ${user.id === 1 ? 'disabled title="ไม่สามารถลบ Master Admin ได้"' : 'title="ลบผู้ใช้"'}>
+                        <svg class="svg-icon" viewBox="0 0 24 24" style="width: 13px; height: 13px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        <span>ลบ</span>
+                    </button>
+                </div>
             </td>
         </tr>
     `).join('');
