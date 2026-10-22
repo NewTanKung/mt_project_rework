@@ -1,0 +1,38 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+
+# Database & Backups
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.db.bak-*
+*.db.initial_backup
+
+# Application Storage & Logs
+storage/
+logs/
+instance/
+
+# Environments & Secrets
+.env
+.env.*
+!.env.example
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Test & coverage
+.pytest_cache/
+.coverage
+htmlcov/
