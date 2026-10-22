@@ -1,112 +1,99 @@
 """
-Main WebView Runner
-Starts Flask server in subprocess and opens PyWebView window
+Main WebView Desktop Application Runner.
+Hosts Flask in an in-process server thread and launches PyWebView.
 """
-import webview
-import subprocess
 import sys
 import time
+import logging
+import threading
 import requests
-import os
-from config import FLASK_HOST, FLASK_PORT
+import webview
+from werkzeug.serving import make_server
+from app import create_app
+from config import FLASK_HOST, FLASK_PORT, FLASK_DEBUG
+from services.device_service import clear_all_devices
+from services.recording import stop_all_active_recordings
+
+logger = logging.getLogger(__name__)
 
 
-def is_flask_running():
-    """
-    Check if Flask server is running
-    """
-    try:
-        response = requests.get(f'http://{FLASK_HOST}:{FLASK_PORT}/', timeout=2)
-        # Flask is running if we get any response (200, 302, 404, etc.)
-        return True
-    except requests.exceptions.RequestException:
-        return False
+class ServerThread(threading.Thread):
+    """Runs Werkzeug WSGI server inside a background thread."""
+    def __init__(self, app, host: str, port: int):
+        super().__init__(name="FlaskServerThread", daemon=True)
+        self.host = host
+        self.port = port
+        self.server = make_server(host, port, app)
+        self.ctx = app.app_context()
+        self.ctx.push()
+
+    def run(self):
+        logger.info("Starting WSGI server on %s:%d", self.host, self.port)
+        self.server.serve_forever()
+
+    def shutdown(self):
+        logger.info("Shutting down WSGI server...")
+        self.server.shutdown()
 
 
-def start_flask():
-    """
-    Start Flask server in subprocess
-    """
-    # Get Python executable
-    python_exe = sys.executable
-    
-    # Start Flask app (don't redirect output so we can see logs)
-    flask_process = subprocess.Popen(
-        [python_exe, 'app.py'],
-        cwd=os.path.dirname(os.path.abspath(__file__))
-    )
-    
-    # Wait for Flask to be ready
-    print("[*] Starting Flask server...")
-    max_wait = 30  # seconds
-    waited = 0
-    
-    while waited < max_wait:
-        if is_flask_running():
-            print("[+] Flask server is ready!")
-            return flask_process
-        
-        # Check if process died
-        if flask_process.poll() is not None:
-            print("[!] Flask process terminated unexpectedly")
-            return None
-        
-        time.sleep(1)
-        waited += 1
-        if waited % 5 == 0:
-            print(f"   Waiting... ({waited}s)")
-    
-    print("[!] Flask server failed to start (timeout)")
-    flask_process.terminate()
-    return None
+def wait_for_server(host: str, port: int, timeout: int = 15) -> bool:
+    """Wait until the HTTP server is responsive."""
+    url = f"http://{host}:{port}/"
+    start = time.time()
+    while time.time() - start < timeout:
+        try:
+            requests.get(url, timeout=1.0)
+            return True
+        except Exception:
+            time.sleep(0.2)
+    return False
 
 
 def main():
-    """
-    Main entry point
-    """
+    """Main application entry point."""
     print("=" * 50)
     print("  Meeting Recorder Desktop Application")
     print("=" * 50)
-    
-    # Start Flask server
-    flask_process = start_flask()
-    
-    if flask_process is None:
-        print("ERROR: Could not start Flask server")
+
+    app = create_app()
+    server = ServerThread(app, FLASK_HOST, FLASK_PORT)
+    server.start()
+
+    print(f"[*] Starting server on http://{FLASK_HOST}:{FLASK_PORT}...")
+    if not wait_for_server(FLASK_HOST, FLASK_PORT):
+        print("ERROR: Server failed to start within timeout.")
+        server.shutdown()
         sys.exit(1)
-    
-    # Create PyWebView window
-    print("[*] Opening application window...")
-    
+
+    print("[+] Server ready! Launching application window...")
+
     window = webview.create_window(
         title='บันทึกการประชุม',
         url=f'http://{FLASK_HOST}:{FLASK_PORT}',
         width=1280,
         height=800,
         resizable=True,
-        fullscreen=False,
+        fullscreen=False
     )
-    
-    # Start WebView (blocking)
+
     try:
-        webview.start(debug=True)
+        webview.start(debug=FLASK_DEBUG)
     except KeyboardInterrupt:
         print("\n[!] Application interrupted by user")
     finally:
-        # Cleanup: clear devices and terminate Flask process
-        print("[*] Cleaning up...")
-        
-        # Clear all devices from database
+        print("[*] Cleaning up application resources...")
         try:
-            from services.device_service import clear_all_devices
+            stop_all_active_recordings()
+        except Exception as e:
+            logger.error("Error stopping recordings: %s", e)
+
+        try:
             clear_all_devices()
         except Exception as e:
-            print(f"[!] Error clearing devices: {e}")
-        
-        flask_process.terminate()
-        flask_process.wait()
-        print("[+] Application closed successfully")
+            logger.error("Error clearing devices: %s", e)
+
+        server.shutdown()
+        print("[+] Application closed cleanly.")
 
 
 if __name__ == '__main__':
