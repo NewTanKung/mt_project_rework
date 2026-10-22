@@ -1,28 +1,22 @@
 """
 Attendance Service
-จัดการระบบเช็คผู้เข้าร่วมประชุม
+Manages meeting participant attendance records and statuses.
 """
-
-from database.db_manager import execute_query
+import logging
 from datetime import datetime
+from database import query_one, query_all, execute, transaction
 
-def initialize_attendance(meeting_id, participant_ids):
+logger = logging.getLogger(__name__)
+
+
+def initialize_attendance(meeting_id: int, participant_ids: list[int]) -> dict:
     """
-    สร้าง attendance records สำหรับการประชุม
-    
-    Args:
-        meeting_id: ID ของการประชุม
-        participant_ids: list ของ participant IDs
-    
-    Returns:
-        dict: {'success': bool, 'message': str, 'count': int}
+    Initialize attendance records for a meeting.
     """
     try:
-        # ตรวจสอบว่ามี records อยู่แล้วหรือไม่
-        existing = execute_query(
+        existing = query_one(
             "SELECT COUNT(*) as count FROM participant_meeting WHERE meeting_id = ?",
-            (meeting_id,),
-            fetch_one=True
+            (meeting_id,)
         )
         
         if existing and existing['count'] > 0:
@@ -30,123 +24,90 @@ def initialize_attendance(meeting_id, participant_ids):
                 'success': False,
                 'message': 'Attendance records already exist for this meeting'
             }
-        
-        # สร้าง records ใหม่
+            
         count = 0
-        for participant_id in participant_ids:
-            execute_query(
-                """INSERT INTO participant_meeting 
-                   (participant_id, meeting_id, status) 
-                   VALUES (?, ?, 'not_started')""",
-                (participant_id, meeting_id),
-                commit=True
-            )
-            count += 1
-        
-        print(f"[Attendance] ✅ Initialized {count} attendance records for meeting {meeting_id}")
+        with transaction():
+            for p_id in participant_ids:
+                execute(
+                    """INSERT INTO participant_meeting (participant_id, meeting_id, status)
+                       VALUES (?, ?, 'not_started')""",
+                    (p_id, meeting_id)
+                )
+                count += 1
+                
+        logger.info("Initialized %d attendance records for meeting %d", count, meeting_id)
         return {
             'success': True,
             'message': f'Created {count} attendance records',
             'count': count
         }
-        
     except Exception as e:
-        print(f"[Attendance] ❌ Error initializing: {str(e)}")
+        logger.exception("Error initializing attendance: %s", e)
         return {'success': False, 'message': str(e)}
 
 
-def mark_attendance(meeting_id, participant_id, status):
+def mark_attendance(meeting_id: int, participant_id: int, status: str) -> dict:
     """
-    บันทึก/อัพเดทสถานะการเข้าร่วม
-    
-    Args:
-        meeting_id: ID ของการประชุม
-        participant_id: ID ของผู้เข้าร่วม
-        status: 'present', 'absent', 'late'
-    
-    Returns:
-        dict: {'success': bool, 'message': str}
+    Record or update attendance status for a participant.
     """
     try:
-        # ตรวจสอบว่ามี record อยู่แล้วหรือไม่
-        existing = execute_query(
-            """SELECT participant_meeting_id FROM participant_meeting 
+        now_str = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        existing = query_one(
+            """SELECT participant_meeting_id FROM participant_meeting
                WHERE meeting_id = ? AND participant_id = ?""",
-            (meeting_id, participant_id),
-            fetch_one=True
+            (meeting_id, participant_id)
         )
         
         if not existing:
-            # สร้างใหม่
-            execute_query(
-                """INSERT INTO participant_meeting 
-                   (participant_id, meeting_id, status) 
-                   VALUES (?, ?, ?)""",
-                (participant_id, meeting_id, status),
-                commit=True
+            execute(
+                """INSERT INTO participant_meeting (participant_id, meeting_id, status, checked_at)
+                   VALUES (?, ?, ?, ?)""",
+                (participant_id, meeting_id, status, now_str)
             )
         else:
-            # อัพเดท
-            execute_query(
-                """UPDATE participant_meeting 
-                   SET status = ? 
+            execute(
+                """UPDATE participant_meeting
+                   SET status = ?, checked_at = ?
                    WHERE meeting_id = ? AND participant_id = ?""",
-                (status, meeting_id, participant_id),
-                commit=True
+                (status, now_str, meeting_id, participant_id)
             )
-        
-        print(f"[Attendance] ✅ Marked participant {participant_id} as {status}")
+            
+        logger.info("Marked participant %d in meeting %d as %s", participant_id, meeting_id, status)
         return {
             'success': True,
             'message': f'Attendance marked as {status}'
         }
-        
     except Exception as e:
-        print(f"[Attendance] ❌ Error marking attendance: {str(e)}")
+        logger.exception("Error marking attendance: %s", e)
         return {'success': False, 'message': str(e)}
 
 
-def get_attendance_summary(meeting_id):
+def get_attendance_summary(meeting_id: int) -> dict:
     """
-    ดึงสรุปผู้เข้าร่วมประชุม
-    
-    Args:
-        meeting_id: ID ของการประชุม
-    
-    Returns:
-        dict: {
-            'success': bool,
-            'participants': list,
-            'summary': {'total': int, 'present': int, 'absent': int, 'not_started': int}
-        }
+    Get full attendance list and statistical summary for a meeting.
     """
     try:
-        # ดึงรายชื่อทั้งหมดพร้อมสถานะ
-        participants = execute_query(
+        participants = query_all(
             """SELECT 
                 pm.participant_meeting_id,
                 pm.participant_id,
                 p.participant_name,
                 p.role,
-                pm.status
+                pm.status,
+                pm.checked_at
                FROM participant_meeting pm
                JOIN participants p ON pm.participant_id = p.participant_id
                WHERE pm.meeting_id = ?
                ORDER BY p.participant_name""",
-            (meeting_id,),
-            fetch_all=True
+            (meeting_id,)
         )
-        
-        # Query returns sqlite3.Row objects, need to convert to dict
-        participants = [dict(row) for row in participants]
 
-        # คำนวณสถิติ
         total = len(participants)
         present = sum(1 for p in participants if p['status'] == 'present')
         absent = sum(1 for p in participants if p['status'] == 'absent')
         late = sum(1 for p in participants if p['status'] == 'late')
         not_started = sum(1 for p in participants if p['status'] == 'not_started')
-        
+
         return {
             'success': True,
             'participants': participants,
@@ -158,71 +119,37 @@ def get_attendance_summary(meeting_id):
                 'not_started': not_started
             }
         }
-        
     except Exception as e:
-        print(f"[Attendance] ❌ Error getting summary: {str(e)}")
+        logger.exception("Error getting attendance summary: %s", e)
         return {'success': False, 'message': str(e)}
 
 
-def get_attendance_status(meeting_id, participant_id):
+def get_attendance_status(meeting_id: int, participant_id: int) -> dict:
     """
-    ดูสถานะการเข้าร่วมของคนเดียว
-    
-    Args:
-        meeting_id: ID ของการประชุม
-        participant_id: ID ของผู้เข้าร่วม
-    
-    Returns:
-        dict: {'success': bool, 'status': str}
+    Get attendance status for a single participant.
     """
     try:
-        result = execute_query(
-            """SELECT status FROM participant_meeting 
+        result = query_one(
+            """SELECT status FROM participant_meeting
                WHERE meeting_id = ? AND participant_id = ?""",
-            (meeting_id, participant_id),
-            fetch_one=True
+            (meeting_id, participant_id)
         )
-        
         if result:
-            result_dict = dict(result)
-            return {
-                'success': True,
-                'status': result_dict['status']
-            }
-        else:
-            return {
-                'success': False,
-                'message': 'No attendance record found'
-            }
-            
+            return {'success': True, 'status': result['status']}
+        return {'success': False, 'message': 'No attendance record found'}
     except Exception as e:
-        print(f"[Attendance] ❌ Error getting status: {str(e)}")
+        logger.exception("Error getting participant status: %s", e)
         return {'success': False, 'message': str(e)}
 
 
-def delete_attendance(meeting_id):
+def delete_attendance(meeting_id: int) -> dict:
     """
-    ลบ attendance records ของการประชุม
-    
-    Args:
-        meeting_id: ID ของการประชุม
-    
-    Returns:
-        dict: {'success': bool, 'message': str}
+    Delete all attendance records for a meeting.
     """
     try:
-        execute_query(
-            "DELETE FROM participant_meeting WHERE meeting_id = ?",
-            (meeting_id,),
-            commit=True
-        )
-        
-        print(f"[Attendance] ✅ Deleted attendance records for meeting {meeting_id}")
-        return {
-            'success': True,
-            'message': 'Attendance records deleted'
-        }
-        
+        execute("DELETE FROM participant_meeting WHERE meeting_id = ?", (meeting_id,))
+        logger.info("Deleted attendance records for meeting %d", meeting_id)
+        return {'success': True, 'message': 'Attendance records deleted'}
     except Exception as e:
-        print(f"[Attendance] ❌ Error deleting: {str(e)}")
+        logger.exception("Error deleting attendance: %s", e)
         return {'success': False, 'message': str(e)}

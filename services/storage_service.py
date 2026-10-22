@@ -1,102 +1,89 @@
 """
-Storage service - Storage path management
+Storage service - Storage path management and validation.
 """
-from database.db_manager import execute_query, dict_from_row
 import os
+import logging
+from database import query_all, query_one, execute
+from core.paths import to_storage_path, resolve_path
+from config import BASE_DIR, EXPORT_DIR, AUDIO_DIR, TRANSCRIPTION_DIR, MODEL_DIR
+
+logger = logging.getLogger(__name__)
 
 
-def get_storage_settings():
+def get_storage_settings() -> dict:
     """
-    Get all storage settings
-    
-    Returns:
-        dict: Dictionary of settings {key: value}
+    Get all storage settings resolved to absolute paths.
     """
-    query = "SELECT setting_key, setting_value FROM storage_settings"
-    rows = execute_query(query, fetch_all=True)
+    rows = query_all("SELECT setting_key, setting_value FROM storage_settings")
+    raw_settings = {r['setting_key']: r['setting_value'] for r in rows}
     
-    settings = {}
-    for row in rows:
-        row_dict = dict(row)
-        settings[row_dict['setting_key']] = row_dict['setting_value']
-    
-    # Return default values if not set
     return {
-        'export_path': settings.get('export_path', os.path.join(os.getcwd(), 'storage', 'exports')),
-        'audio_path': settings.get('audio_path', os.path.join(os.getcwd(), 'storage', 'audio')),
-        'transcription_path': settings.get('transcription_path', os.path.join(os.getcwd(), 'storage', 'transcriptions')),
-        'model_path': settings.get('model_path', os.path.join(os.getcwd(), 'storage', 'models'))
+        'export_path': resolve_path(raw_settings.get('export_path')) or EXPORT_DIR,
+        'audio_path': resolve_path(raw_settings.get('audio_path')) or AUDIO_DIR,
+        'transcription_path': resolve_path(raw_settings.get('transcription_path')) or TRANSCRIPTION_DIR,
+        'model_path': resolve_path(raw_settings.get('model_path')) or MODEL_DIR,
     }
 
 
-def update_storage_settings(export_path=None, audio_path=None, transcription_path=None, model_path=None):
+def update_storage_settings(export_path: str | None = None,
+                            audio_path: str | None = None,
+                            transcription_path: str | None = None,
+                            model_path: str | None = None) -> bool:
     """
-    Update storage settings
-    
-    Returns:
-        bool: True if successful
+    Update storage settings in the database, saving paths in normalized portable form.
     """
     settings = {
         'export_path': export_path,
         'audio_path': audio_path,
         'transcription_path': transcription_path,
-        'model_path': model_path
+        'model_path': model_path,
     }
     
     for key, value in settings.items():
         if value is not None:
-            # Check if setting exists
-            existing = execute_query(
-                "SELECT id FROM storage_settings WHERE setting_key = ?",
-                (key,),
-                fetch_one=True
-            )
+            # Save portable path (relative if inside BASE_DIR)
+            portable_val = to_storage_path(value)
             
+            existing = query_one("SELECT id FROM storage_settings WHERE setting_key = ?", (key,))
             if existing:
-                # Update
-                execute_query(
+                execute(
                     "UPDATE storage_settings SET setting_value = ? WHERE setting_key = ?",
-                    (value, key),
-                    commit=True
+                    (portable_val, key)
                 )
             else:
-                # Insert
-                execute_query(
+                execute(
                     "INSERT INTO storage_settings (setting_key, setting_value) VALUES (?, ?)",
-                    (key, value),
-                    commit=True
+                    (key, portable_val)
                 )
-            
-            # Create directory if not exists
+                
+            # Create physical directory if not exists
+            abs_path = resolve_path(value)
             try:
-                os.makedirs(value, exist_ok=True)
+                os.makedirs(abs_path, exist_ok=True)
             except Exception as e:
-                print(f"Error creating directory {value}: {e}")
-    
+                logger.error("Error creating directory %s: %s", abs_path, e)
+                
     return True
 
 
-def validate_path(path):
+def validate_path(path: str | None) -> dict:
     """
-    Validate if path is writable
-    
-    Returns:
-        dict: {valid: bool, message: str}
+    Validate if a path exists or can be created, and is writable.
     """
-    if not path:
+    if not path or not path.strip():
         return {'valid': False, 'message': 'Path ว่างเปล่า'}
+        
+    abs_path = resolve_path(path.strip())
     
-    # Check if path exists
-    if not os.path.exists(path):
+    if not os.path.exists(abs_path):
         try:
-            os.makedirs(path, exist_ok=True)
+            os.makedirs(abs_path, exist_ok=True)
         except PermissionError:
-            return {'valid': False, 'message': f'ไม่มีสิทธิ์สร้างโฟลเดอร์: {path}'}
+            return {'valid': False, 'message': f'ไม่มีสิทธิ์สร้างโฟลเดอร์: {abs_path}'}
         except Exception as e:
             return {'valid': False, 'message': f'ไม่สามารถสร้างโฟลเดอร์: {str(e)}'}
-    
-    # Check if writable
-    if not os.access(path, os.W_OK):
-        return {'valid': False, 'message': f'ไม่มีสิทธิ์เขียนไฟล์ใน: {path}'}
-    
+            
+    if not os.access(abs_path, os.W_OK):
+        return {'valid': False, 'message': f'ไม่มีสิทธิ์เขียนไฟล์ใน: {abs_path}'}
+        
     return {'valid': True, 'message': 'Path ถูกต้อง'}
