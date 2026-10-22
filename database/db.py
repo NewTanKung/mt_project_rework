@@ -6,15 +6,30 @@ and flask.g for request contexts.
 import sqlite3
 import threading
 from contextlib import contextmanager
-from flask import has_app_context, g
+from flask import has_app_context, g, current_app
 from config import DATABASE_PATH
 
 _thread_local = threading.local()
+_custom_db_path: str | None = None
+
+
+def set_default_db_path(path: str | None):
+    """Set global fallback database path for background threads."""
+    global _custom_db_path
+    _custom_db_path = path
 
 
 def connect(db_path: str | None = None) -> sqlite3.Connection:
     """Create and configure a new SQLite connection with WAL mode."""
-    target_path = db_path or DATABASE_PATH
+    target_path = db_path
+    if not target_path and has_app_context():
+        try:
+            target_path = current_app.config.get('DATABASE_PATH')
+        except Exception:
+            pass
+    if not target_path:
+        target_path = _custom_db_path or DATABASE_PATH
+
     conn = sqlite3.connect(
         target_path,
         timeout=30.0,

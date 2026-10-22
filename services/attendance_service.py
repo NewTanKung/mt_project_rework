@@ -130,12 +130,16 @@ def get_attendance_status(meeting_id: int, participant_id: int) -> dict:
     """
     try:
         result = query_one(
-            """SELECT status FROM participant_meeting
+            """SELECT status, checked_at FROM participant_meeting
                WHERE meeting_id = ? AND participant_id = ?""",
             (meeting_id, participant_id)
         )
         if result:
-            return {'success': True, 'status': result['status']}
+            return {
+                'success': True,
+                'status': result['status'],
+                'checked_at': result['checked_at']
+            }
         return {'success': False, 'message': 'No attendance record found'}
     except Exception as e:
         logger.exception("Error getting participant status: %s", e)

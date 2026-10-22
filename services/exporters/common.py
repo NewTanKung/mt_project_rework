@@ -15,10 +15,13 @@ def safe_filename(name: str) -> str:
     """Sanitize filename to prevent directory traversal or invalid OS characters."""
     if not name:
         return "meeting"
-    # Replace invalid Windows filename characters
-    cleaned = re.sub(r'[\\/*?:"<>|]', '_', name.strip())
-    # Collapse multiple spaces or underscores
-    cleaned = re.sub(r'[\s_]+', '_', cleaned)
+    # Remove directory traversal segments
+    cleaned = re.sub(r'(\.\.[/\\])+', '', name.strip())
+    # Replace invalid Windows filename characters and leading dots
+    cleaned = re.sub(r'[\\/*?:"<>|]', '_', cleaned)
+    cleaned = re.sub(r'^\.+', '', cleaned)
+    # Collapse multiple spaces or underscores and trim ends
+    cleaned = re.sub(r'[\s_]+', '_', cleaned).strip(' _')
     return cleaned[:100] or "meeting"
 
 

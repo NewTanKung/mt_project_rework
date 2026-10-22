@@ -13,13 +13,15 @@ from database.db import (
     transaction,
     execute_query,
     dict_from_row,
-    list_from_rows
+    list_from_rows,
+    set_default_db_path
 )
 from database.migrate import migrate, init_db
 
 __all__ = [
     'connect',
     'get_db',
+    'set_default_db_path',
     'close_db',
     'close_thread_db',
     'query_one',

@@ -67,14 +67,15 @@ def apply_migration(conn: sqlite3.Connection, version: int, filename: str, path:
     """Apply a single migration (.sql or .py)."""
     logger.info(f"Applying migration {version:03d}: {filename}...")
     
-    conn.execute("BEGIN IMMEDIATE")
     try:
         if filename.endswith('.sql'):
             with open(path, 'r', encoding='utf-8') as f:
                 sql = f.read()
             conn.executescript(sql)
+            set_user_version(conn, version)
         elif filename.endswith('.py'):
             # Load Python migration module dynamically
+            conn.execute("BEGIN IMMEDIATE")
             spec = importlib.util.spec_from_file_location(f"migration_{version}", path)
             if spec and spec.loader:
                 module = importlib.util.module_from_spec(spec)
@@ -83,12 +84,15 @@ def apply_migration(conn: sqlite3.Connection, version: int, filename: str, path:
                     module.apply(conn)
                 else:
                     raise AttributeError(f"Migration {filename} has no apply() function")
-                    
-        set_user_version(conn, version)
-        conn.execute("COMMIT")
+            set_user_version(conn, version)
+            conn.commit()
+            
         logger.info(f"Successfully applied migration {version:03d}")
     except Exception as e:
-        conn.execute("ROLLBACK")
+        try:
+            conn.rollback()
+        except Exception:
+            pass
         logger.error(f"Error applying migration {filename}: {e}")
         raise
 

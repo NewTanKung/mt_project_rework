@@ -29,6 +29,8 @@ def create_app(config_overrides: dict | None = None) -> Flask:
 
     # Run database migrations and recover stale jobs
     with app.app_context():
+        from database import set_default_db_path
+        set_default_db_path(app.config['DATABASE_PATH'])
         migrate(app.config['DATABASE_PATH'])
         recover_stale_jobs()
 
