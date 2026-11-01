@@ -76,7 +76,7 @@
     </div>
     <div class="card-body">
         <!-- Add Participant Row Form -->
-        <div class="row g-2 mb-4 p-3 bg-light rounded-3 border">
+        <div class="row g-2 mb-4 p-3 glass-subcard">
             <div class="col-md-4">
                 <label class="form-label small fw-semibold text-muted mb-1">ชื่อ-นามสกุล ผู้เข้าร่วม</label>
                 <input type="text" class="form-control form-control-custom" id="participantName"
@@ -313,7 +313,7 @@
                     <strong class="text-slate-800">${p.name}</strong>
                 </div>
             </td>
-            <td><span class="badge bg-secondary-subtle text-secondary border px-2 py-1">${p.role || 'สมาชิก'}</span></td>
+            <td><span class="badge glass-pill">${p.role || 'สมาชิก'}</span></td>
             <td><span class="font-monospace text-slate-700">${p.channel_name || '-'}</span></td>
             <td style="text-align: center;">
                 <button class="btn btn-sm btn-outline-danger btn-custom py-1 px-2" onclick="removeParticipant(${idx})" title="ลบผู้เข้าร่วม">

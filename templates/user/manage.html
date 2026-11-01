@@ -24,7 +24,7 @@
         <div class="row g-3 align-items-center">
             <div class="col-md-5">
                 <div class="input-group">
-                    <span class="input-group-text bg-white border-end-0">
+                    <span class="input-group-text glass-addon border-end-0">
                         <svg class="svg-icon text-muted" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                     </span>
                     <input type="text" class="form-control form-control-custom border-start-0" id="searchInput"
@@ -66,7 +66,7 @@
             </svg>
             รายการการประชุมทั้งหมด
         </h5>
-        <span class="badge bg-light text-slate-700 border" id="meetingsCountBadge">0 การประชุม</span>
+        <span class="badge glass-pill" id="meetingsCountBadge">0 การประชุม</span>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
@@ -123,7 +123,7 @@
                     </select>
                 </div>
 
-                <div class="alert alert-info d-flex align-items-start gap-2 mb-0">
+                <div class="glass-subcard p-3 d-flex align-items-start gap-2 mb-0">
                     <svg class="svg-icon text-info flex-shrink-0 mt-1" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
                     <div>
                         <strong>ข้อแนะนำ:</strong> การถอดเสียงทำงานแบบแยก Background Process คุณสามารถปิดหน้าต่างหรือทำกิจกรรมอื่นระหว่างการถอดเสียงได้
@@ -366,7 +366,7 @@
                     const s = data.summary;
 
                     summaryDiv.innerHTML = `
-                        <div class="alert alert-light border">
+                        <div class="glass-subcard p-3">
                             <div class="row text-center">
                                 <div class="col-3"><strong>ทั้งหมด:</strong> ${s.total}</div>
                                 <div class="col-3"><span class="text-success">✅ มา: ${s.present}</span></div>
@@ -385,7 +385,7 @@
                                 <td>
                                     ${p.status === 'present' ? '<span class="badge bg-success">มา</span>' :
                                     p.status === 'absent' ? '<span class="badge bg-danger">ขาด</span>' :
-                                        '<span class="badge bg-light text-dark">ยังไม่เช็ค</span>'}
+                                        '<span class="badge glass-pill">ยังไม่เช็ค</span>'}
                                 </td>
                             </tr>
                         `}).join('');
@@ -472,7 +472,7 @@
                             <div class="card-body">
                                 <div class="d-flex flex-wrap gap-2">
                                     ${m.participants && m.participants.length > 0 ? m.participants.map(p => `
-                                        <div class="badge bg-light text-slate-700 border p-2 d-flex align-items-center gap-2">
+                                        <div class="badge glass-pill p-2 d-flex align-items-center gap-2">
                                             <span class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center" style="width: 22px; height: 22px; font-size: 11px;">
                                                 ${(p.participant_name || 'P')[0].toUpperCase()}
                                             </span>
@@ -494,7 +494,7 @@
                                 <div class="row g-2 align-items-center">
                                     <div class="col-md-6">
                                         <div class="input-group">
-                                            <span class="input-group-text bg-white border-end-0">
+                                            <span class="input-group-text glass-addon border-end-0">
                                                 <svg class="svg-icon text-muted" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                                             </span>
                                             <input type="text" class="form-control form-control-custom border-start-0" id="transcriptSearch" 
@@ -541,7 +541,7 @@
                                         <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">
                                             🎤 ${speakerName}
                                         </span>
-                                        ${timeRange ? `<span class="badge bg-light text-slate-500 font-monospace border">${timeRange}</span>` : ''}
+                                        ${timeRange ? `<span class="badge glass-pill font-monospace">${timeRange}</span>` : ''}
                                     </div>
                                     <button class="btn btn-sm btn-outline-primary btn-custom py-0 px-2 btn-edit-trans" 
                                             onclick="openEditModal(${t.voice_id || 0}, '${speakerName.replace(/'/g, "\\'")}', '${t.start_time || ''}', '${t.end_time || ''}', \`${textContent.replace(/`/g, '').replace(/\$/g, '').replace(/'/g, "\\'")}\`, ${meetingId})" 
@@ -956,19 +956,9 @@
         });
     }
 
-    function showCompletionNotification(job) {
-        // Toast notification
-        Swal.fire({
-            icon: 'success',
-            title: '🎉 ถอดเสียงเสร็จแล้ว!',
-            html: `<strong>${job.meeting_name}</strong><br><small>คลิกดูรายละเอียดได้เลย</small>`,
-            toast: true,
-            position: 'top-end',
-            showConfirmButton: false,
-            timer: 5000,
-            timerProgressBar: true,
-            showCloseButton: true
-        });
+    function showCompletionNotification(job) {
+        // Liquid Glass Toast notification (Offline-safe)
+        showToast(`🎉 ถอดเสียงเสร็จแล้ว: ${job.meeting_name}`, "success");
 
         // ✅ รีเฟรชข้อมูล meeting
         loadMeetings();
@@ -997,17 +987,6 @@
         }
     }
 
-    // Show toast notification (using SweetAlert2 for consistency)
-    function showToast(message, type = 'info') {
-        Swal.fire({
-            toast: true,
-            position: 'top-end',
-            showConfirmButton: false,
-            timer: 3000,
-            timerProgressBar: true,
-            icon: type,
-            title: message
-        });
-    }
+    // Uses global Liquid Glass showToast() defined in user/layout.html
 </script>
 {% endblock %}

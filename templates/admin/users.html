@@ -33,7 +33,7 @@
             <svg class="svg-icon text-primary" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             รายชื่อผู้ใช้งานทั้งหมด
         </h5>
-        <span class="badge bg-light text-slate-700 border" id="usersCountBadge">0 บัญชี</span>
+        <span class="badge glass-pill" id="usersCountBadge">0 บัญชี</span>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
@@ -78,7 +78,7 @@
                     <div class="mb-3">
                         <label for="username" class="form-label fw-semibold">ชื่อผู้ใช้ (Username) <span class="text-danger">*</span></label>
                         <div class="input-group">
-                            <span class="input-group-text bg-white">
+                            <span class="input-group-text glass-addon border-end-0">
                                 <svg class="svg-icon text-muted" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                             </span>
                             <input type="text" class="form-control form-control-custom" id="username" placeholder="เช่น user01" required>
@@ -88,7 +88,7 @@
                     <div class="mb-3">
                         <label for="password" class="form-label fw-semibold">รหัสผ่าน (Password) <span class="text-danger">*</span></label>
                         <div class="input-group">
-                            <span class="input-group-text bg-white">
+                            <span class="input-group-text glass-addon border-end-0">
                                 <svg class="svg-icon text-muted" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                             </span>
                             <input type="password" class="form-control form-control-custom" id="password" required>
@@ -169,7 +169,7 @@
                         ${(user.username || 'U')[0].toUpperCase()}
                     </span>
                     <strong class="text-slate-800">${user.username}</strong>
-                    ${user.id === 1 ? '<span class="badge bg-light text-slate-500 border small">Master</span>' : ''}
+                    ${user.id === 1 ? '<span class="badge glass-pill small">Master</span>' : ''}
                 </div>
             </td>
             <td>

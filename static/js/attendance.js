@@ -118,7 +118,7 @@ function renderAttendanceCards(participants) {
                         <div class="flex-grow-1">
                             <h6 class="mb-1">${p.participant_name}</h6>
                             <small class="text-muted">
-                                <span class="badge bg-info">${p.role || 'สมาชิก'}</span>
+                                <span class="badge glass-pill">${p.role || 'สมาชิก'}</span>
                             </small>
                         </div>
                         <button class="btn btn-sm btn-toggle ${isAbsent ? 'btn-danger' : 'btn-success'}" 

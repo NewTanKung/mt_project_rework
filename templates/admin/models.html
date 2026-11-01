@@ -34,7 +34,7 @@
     <div class="card-body">
         <div class="row">
             <div class="col-md-6">
-                <div class="form-check p-3 rounded-3 border bg-light d-flex align-items-start gap-3">
+                <div class="form-check p-3 glass-subcard d-flex align-items-start gap-3">
                     <input class="form-check-input mt-1 ms-0" type="radio" name="engine" id="engineWhisper" value="whisper" checked>
                     <label class="form-check-label" for="engineWhisper">
                         <div class="d-flex align-items-center gap-2">
@@ -59,7 +59,7 @@
         <span class="badge bg-primary text-white" id="downloadModelName">กำลังดาวน์โหลด</span>
     </div>
     <div class="card-body">
-        <div class="progress progress-custom mb-2" style="height: 12px; border-radius: 6px; background-color: var(--slate-100);">
+        <div class="progress progress-custom mb-2">
             <div class="progress-bar progress-bar-custom bg-primary" id="progressBar" style="width: 0%; transition: width 0.3s ease;">0%</div>
         </div>
         <p class="mb-0 text-muted-custom small" id="downloadStatus">กำลังเริ่มดาวน์โหลด...</p>
@@ -73,7 +73,7 @@
             <svg class="svg-icon text-primary" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
             รายการโมเดล Whisper
         </h5>
-        <span class="badge bg-light text-slate-700 border" id="modelsCountBadge">0 โมเดล</span>
+        <span class="badge glass-pill" id="modelsCountBadge">0 โมเดล</span>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
@@ -169,7 +169,7 @@
                     <strong class="text-slate-800">${model.name}</strong>
                 </div>
             </td>
-            <td><span class="badge bg-light text-slate-700 font-monospace border px-2 py-1">${model.size}</span></td>
+            <td><span class="badge glass-pill font-monospace">${model.size}</span></td>
             <td><span class="text-muted-custom small">${model.description}</span></td>
             <td>
                 ${model.is_downloaded ?

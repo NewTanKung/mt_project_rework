@@ -7,15 +7,29 @@
     <title>เข้าสู่ระบบ - บันทึกการประชุม</title>
     <!-- Bootstrap CSS (Offline) -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
-    <!-- Custom CSS -->
+    <!-- Custom Liquid Glass CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
 </head>
 
 <body>
+    <!-- Global SVG Liquid Distortion & Specular Filter Defs -->
+    <svg class="liquid-svg-defs" aria-hidden="true">
+        <defs>
+            <filter id="liquid-refract" x="-20%" y="-20%" width="140%" height="140%">
+                <feTurbulence type="fractalNoise" baseFrequency="0.015 0.02" numOctaves="2" seed="7" result="noise">
+                    <animate attributeName="baseFrequency" dur="14s" values="0.015 0.02;0.022 0.028;0.015 0.02" repeatCount="indefinite" />
+                </feTurbulence>
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="16" xChannelSelector="R" yChannelSelector="G" />
+            </filter>
+        </defs>
+    </svg>
+
     <div class="login-container">
-        <!-- Ambient Glowing Orbs -->
+        <!-- Ambient Glowing Orbs & Decorative Liquid Glass Droplets -->
         <div class="login-ambient-orb login-orb-1"></div>
         <div class="login-ambient-orb login-orb-2"></div>
+        <div class="liquid-droplet-deco liquid-droplet-1" aria-hidden="true"></div>
+        <div class="liquid-droplet-deco liquid-droplet-2" aria-hidden="true"></div>
 
         <div class="login-card">
             <div class="login-header">
@@ -37,30 +51,30 @@
             <!-- Login Form -->
             <form id="loginForm">
                 <div class="mb-3">
-                    <label for="username" class="form-label fw-semibold text-secondary small">ชื่อผู้ใช้</label>
+                    <label for="username" class="form-label fw-semibold text-slate-700 small">ชื่อผู้ใช้</label>
                     <div class="input-group">
-                        <span class="input-group-text bg-white border-end-0 border" style="border-color: var(--slate-200); border-radius: 10px 0 0 10px;">
-                            <svg class="svg-icon text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <span class="input-group-text glass-addon border-end-0">
+                            <svg class="svg-icon text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                                 <circle cx="12" cy="7" r="4"></circle>
                             </svg>
                         </span>
-                        <input type="text" class="form-control form-control-custom border-start-0" id="username" name="username" 
-                            style="border-radius: 0 10px 10px 0;" placeholder="กรอกชื่อผู้ใช้..." required autofocus>
+                        <input type="text" class="form-control form-control-custom border-start-0" id="username" name="username"
+                            style="border-radius: 0 14px 14px 0;" placeholder="กรอกชื่อผู้ใช้..." required autofocus>
                     </div>
                 </div>
 
                 <div class="mb-4">
-                    <label for="password" class="form-label fw-semibold text-secondary small">รหัสผ่าน</label>
+                    <label for="password" class="form-label fw-semibold text-slate-700 small">รหัสผ่าน</label>
                     <div class="input-group">
-                        <span class="input-group-text bg-white border-end-0 border" style="border-color: var(--slate-200); border-radius: 10px 0 0 10px;">
-                            <svg class="svg-icon text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <span class="input-group-text glass-addon border-end-0">
+                            <svg class="svg-icon text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                                 <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                             </svg>
                         </span>
                         <input type="password" class="form-control form-control-custom border-start-0" id="password" name="password"
-                            style="border-radius: 0 10px 10px 0;" placeholder="กรอกรหัสผ่าน..." required>
+                            style="border-radius: 0 14px 14px 0;" placeholder="กรอกรหัสผ่าน..." required>
                     </div>
                 </div>
 
@@ -80,6 +94,8 @@
 
     <!-- Bootstrap JS (Offline) -->
     <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+    <!-- Liquid Glass Interactive Engine -->
+    <script src="{{ url_for('static', filename='js/liquid_glass.js') }}"></script>
 
     <!-- Login Script -->
     <script>

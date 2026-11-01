@@ -48,7 +48,7 @@
             </svg>
             รายการอุปกรณ์เสียงที่ตรวจพบ
         </h5>
-        <span class="badge bg-light text-slate-700 border" id="devicesCountBadge">0 อุปกรณ์</span>
+        <span class="badge glass-pill" id="devicesCountBadge">0 อุปกรณ์</span>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
@@ -160,7 +160,7 @@
                     <strong class="text-slate-800">${device.name}</strong>
                 </div>
             </td>
-            <td><span class="badge bg-light text-slate-700 font-monospace border px-2 py-1">Index: ${device.device_index}</span></td>
+            <td><span class="badge glass-pill font-monospace">Index: ${device.device_index}</span></td>
             <td><span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">${device.max_input_channels} Ch</span></td>
             <td style="padding-right: 1.5rem;"><span class="text-muted-custom small">${device.host_api}</span></td>
         </tr>

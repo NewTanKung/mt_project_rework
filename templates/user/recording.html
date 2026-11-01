@@ -33,7 +33,7 @@
             </svg>
             ข้อมูลการประชุม
         </h5>
-        <button class="btn btn-sm btn-outline-secondary btn-custom" onclick="selectModal.show()" title="เปลี่ยนการประชุม">
+        <button class="btn btn-sm btn-secondary-custom btn-custom" onclick="selectModal.show()" title="เปลี่ยนการประชุม">
             <svg class="svg-icon" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><polyline points="23 20 23 14 17 14"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
             <span>เปลี่ยนการประชุม</span>
         </button>
@@ -64,8 +64,10 @@
     </div>
 </div>
 
-<!-- Timer Cockpit -->
-<div class="timer-cockpit">
+<!-- Prismatic Liquid Glass Timer Cockpit -->
+<div class="timer-cockpit" id="timerCockpit">
+    <div class="cockpit-liquid-wave" aria-hidden="true"></div>
+    <div class="cockpit-liquid-wave wave-2" aria-hidden="true"></div>
     <div class="recording-badge-live" id="recordingBadgeLive">
         <span class="rec-dot"></span>
         <span id="recordingBadgeText">พร้อมบันทึก</span>
@@ -73,15 +75,15 @@
     <div class="timer-display" id="timerDisplay">
         00:00:00
     </div>
-    <div class="text-white-50 small" id="timerStatusHelp">
+    <div class="cockpit-help-text small" id="timerStatusHelp">
         กด "เริ่มบันทึก" เพื่อเริ่มต้นการบันทึกเสียงการประชุม
     </div>
 </div>
 
 <!-- Control Buttons -->
 <div class="text-center mb-4 d-flex justify-content-center align-items-center flex-wrap gap-2">
-    <button class="btn btn-outline-primary btn-custom" id="checkAttendanceBtn" onclick="openAttendanceModal()">
-        <svg class="svg-icon" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+    <button class="btn btn-secondary-custom btn-custom" id="checkAttendanceBtn" onclick="openAttendanceModal()">
+        <svg class="svg-icon text-primary" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
         <span>เช็คผู้เข้าร่วม</span>
     </button>
     <button class="btn btn-success btn-custom" id="startBtn" onclick="startRecording()">
@@ -114,7 +116,7 @@
             </svg>
             ผู้เข้าร่วมการประชุมและกิจกรรมเสียง
         </h5>
-        <span class="badge bg-light text-slate-700 border small">ตรวจจับเรียลไทม์</span>
+        <span class="badge glass-pill small">ตรวจจับเรียลไทม์</span>
     </div>
     <div class="card-body">
         <div id="participantsGrid" class="participants-grid">
@@ -160,7 +162,7 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <a href="/user/register" class="btn btn-primary btn-custom">
+                <a href="/user/register" class="btn btn-primary-custom btn-custom">
                     <svg class="svg-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                     ลงทะเบียนการประชุมใหม่
                 </a>
@@ -201,12 +203,10 @@
 
             if (data.success) {
                 if (data.updates.length > 0) {
-                    // แสดงการอัปเดต
                     showDeviceSyncNotification(data.updates);
                 }
 
                 if (data.missing.length > 0) {
-                    // แสดงเตือนว่ามีอุปกรณ์หาย
                     showMissingDevicesWarning(data.missing);
                 }
             }
@@ -257,15 +257,15 @@
         const tbody = document.getElementById('meetingsTableBody');
         tbody.innerHTML = meetings.map(m => `
         <tr>
-            <td>${m.meeting_name}</td>
+            <td class="fw-semibold text-slate-800">${m.meeting_name}</td>
             <td>${m.meeting_date}</td>
             <td>
                 <span class="badge badge-custom ${getStatusClass(m.status)}">
                     ${getStatusText(m.status)}
                 </span>
             </td>
-            <td>
-                <button class="btn btn-sm btn-primary" onclick="selectMeeting(${m.meeting_id})">
+            <td class="text-end">
+                <button class="btn btn-sm btn-primary-custom btn-custom py-1 px-3" onclick="selectMeeting(${m.meeting_id})">
                     เลือก
                 </button>
             </td>
@@ -301,7 +301,7 @@
         renderParticipants();
     }
 
-    // Render participants with speaker indicators & soundwave bars
+    // Render participants with Liquid Ripple rings & soundwave bars
     function renderParticipants() {
         const grid = document.getElementById('participantsGrid');
 
@@ -311,7 +311,6 @@
         }
 
         grid.innerHTML = currentMeeting.participants.map(p => {
-            // Get initials for avatar
             const initials = p.participant_name
                 .split(' ')
                 .filter(n => n.length > 0)
@@ -324,12 +323,13 @@
             <div class="participant-card" id="participant-${p.person_id}">
                 <div class="participant-avatar-wrap">
                     <div class="avatar-glow-ring"></div>
+                    <div class="liquid-ripple-ring"></div>
                     <div class="participant-avatar">${initials}</div>
                 </div>
-                <div class="participant-name text-truncate" title="${p.participant_name}">${p.participant_name}</div>
+                <div class="participant-name fw-bold text-slate-800 text-truncate" title="${p.participant_name}">${p.participant_name}</div>
                 <div class="participant-channel text-muted-custom small mb-1">${p.channel_name || '-'}</div>
                 <div class="participant-status">
-                    <span class="status-text text-muted-custom">ไม่พูด</span>
+                    <span class="status-text text-muted-custom small">ไม่พูด</span>
                     <span class="speaker-indicator" id="indicator-${p.person_id}"></span>
                 </div>
                 <div class="soundwave-bars" title="Audio Activity">
@@ -350,31 +350,44 @@
             badge.textContent = getStatusText(status);
         }
 
+        const cockpit = document.getElementById('timerCockpit');
         const badgeText = document.getElementById('recordingBadgeText');
         const badgeLive = document.getElementById('recordingBadgeLive');
         const helpText = document.getElementById('timerStatusHelp');
+
+        if (cockpit) {
+            cockpit.classList.remove('is-recording', 'is-paused', 'is-completed');
+            if (status === 'recording') cockpit.classList.add('is-recording');
+            else if (status === 'paused') cockpit.classList.add('is-paused');
+            else if (status === 'completed') cockpit.classList.add('is-completed');
+        }
+
         if (badgeText && badgeLive) {
             if (status === 'recording') {
                 badgeText.textContent = 'กำลังบันทึกเสียง (LIVE)';
-                badgeLive.style.borderColor = 'rgba(239, 68, 68, 0.6)';
-                badgeLive.style.background = 'rgba(239, 68, 68, 0.25)';
+                badgeLive.style.borderColor = 'rgba(239, 68, 68, 0.55)';
+                badgeLive.style.background = 'rgba(254, 242, 242, 0.78)';
+                badgeLive.style.color = '#b91c1c';
                 badgeLive.classList.remove('d-none');
                 if (helpText) helpText.textContent = 'ระบบกำลังบันทึกและตรวจจับเสียงผู้เข้าร่วมแบบเรียลไทม์';
             } else if (status === 'paused') {
                 badgeText.textContent = 'หยุดชั่วคราว (PAUSED)';
-                badgeLive.style.borderColor = 'rgba(245, 158, 11, 0.6)';
-                badgeLive.style.background = 'rgba(245, 158, 11, 0.25)';
+                badgeLive.style.borderColor = 'rgba(245, 158, 11, 0.55)';
+                badgeLive.style.background = 'rgba(254, 243, 199, 0.78)';
+                badgeLive.style.color = '#b45309';
                 badgeLive.classList.remove('d-none');
                 if (helpText) helpText.textContent = 'การบันทึกเสียงหยุดชั่วคราว กด "ดำเนินการต่อ" เพื่อบันทึกต่อ';
             } else if (status === 'completed') {
                 badgeText.textContent = 'การประชุมเสร็จสิ้น';
-                badgeLive.style.borderColor = 'rgba(16, 185, 129, 0.6)';
-                badgeLive.style.background = 'rgba(16, 185, 129, 0.25)';
+                badgeLive.style.borderColor = 'rgba(16, 185, 129, 0.55)';
+                badgeLive.style.background = 'rgba(236, 253, 245, 0.78)';
+                badgeLive.style.color = '#047857';
                 if (helpText) helpText.textContent = 'เสร็จสิ้นการบันทึกเรียบร้อยแล้ว กำลังนำทางไปหน้ารายการการประชุม';
             } else {
                 badgeText.textContent = 'พร้อมบันทึก';
-                badgeLive.style.borderColor = 'rgba(99, 102, 241, 0.4)';
-                badgeLive.style.background = 'rgba(99, 102, 241, 0.15)';
+                badgeLive.style.borderColor = 'rgba(255, 255, 255, 0.92)';
+                badgeLive.style.background = 'rgba(255, 255, 255, 0.68)';
+                badgeLive.style.color = 'var(--slate-800)';
                 if (helpText) helpText.textContent = 'กด "เริ่มบันทึก" เพื่อเริ่มต้นการบันทึกเสียงการประชุม';
             }
         }
@@ -395,7 +408,7 @@
                 updateStatusDisplay('recording');
                 updateButtons('recording');
                 startTimer();
-                startSpeakerDetection(); // เริ่มตรวจจับผู้พูด
+                startSpeakerDetection();
             }
         } catch (error) {
             showAlert('ไม่สามารถเริ่มบันทึกได้', 'danger');
@@ -551,10 +564,9 @@
     function startSpeakerDetection() {
         if (!currentMeeting) return;
 
-        // Fetch real speaker activity from recording service
         speakerDetectionInterval = setInterval(() => {
             fetchRealSpeakerActivity();
-        }, 500); // Update every 500ms
+        }, 500);
     }
 
     function stopSpeakerDetection() {
@@ -562,10 +574,9 @@
             clearInterval(speakerDetectionInterval);
             speakerDetectionInterval = null;
 
-            // Reset all indicators
             if (currentMeeting && currentMeeting.participants) {
                 currentMeeting.participants.forEach(p => {
-                    updateSpeakerStatus(p.person_id, false);
+                    updateSpeakerStatus(p.person_id, false, 0);
                 });
             }
         }
@@ -578,17 +589,13 @@
             const response = await fetch(`/api/user/meetings/${currentMeeting.meeting_id}/audio-levels`);
             const data = await response.json();
 
-            console.log('[Speaker Detection] Audio levels:', data);
-
             if (data.success && data.levels) {
                 currentMeeting.participants.forEach(participant => {
-                    // ✅ API return object: {name, is_speaking, rms}
                     const levelInfo = data.levels[participant.person_id];
 
                     if (levelInfo) {
                         const isSpeaking = levelInfo.is_speaking || false;
-                        console.log(`[Speaker] ${levelInfo.name}: RMS=${levelInfo.rms}, Speaking=${isSpeaking}`);
-                        updateSpeakerStatus(participant.person_id, isSpeaking);
+                        updateSpeakerStatus(participant.person_id, isSpeaking, levelInfo.rms || 0);
                     }
                 });
             }
@@ -597,7 +604,7 @@
         }
     }
 
-    function updateSpeakerStatus(personId, isSpeaking) {
+    function updateSpeakerStatus(personId, isSpeaking, rms = 0) {
         const indicator = document.getElementById(`indicator-${personId}`);
         const card = document.getElementById(`participant-${personId}`);
 
@@ -608,6 +615,9 @@
         if (isSpeaking) {
             indicator.classList.add('speaking');
             card.classList.add('speaking');
+            // Scale soundwave peak dynamically with real RMS level (between 12px and 22px)
+            const peakPx = Math.min(22, Math.max(12, Math.round(12 + rms * 80)));
+            card.style.setProperty('--bar-peak', `${peakPx}px`);
             if (statusText) {
                 statusText.textContent = 'กำลังพูด';
                 statusText.classList.remove('text-muted-custom');
@@ -616,6 +626,7 @@
         } else {
             indicator.classList.remove('speaking');
             card.classList.remove('speaking');
+            card.style.removeProperty('--bar-peak');
             if (statusText) {
                 statusText.textContent = 'ไม่พูด';
                 statusText.classList.remove('text-success', 'fw-semibold');
