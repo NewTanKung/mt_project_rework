@@ -1,9 +1,22 @@
 /* ==========================================================================
-   Meeting Recorder - Daylight Liquid Glass Design System
-   Inspired by Apple Liquid Glass (iOS 26 / macOS Tahoe / visionOS)
+   Meeting Recorder - Magic UI × Daylight Liquid Glass Design System
+   Features:
+   - Border Beam (@property --beam-angle + mask-composite)
+   - Magic Card (Proximity Radial Border Mask + Inner Spotlight)
+   - Shimmer Button (Rotating Conic Rim + Sweeping Light Sheen)
+   - Magic Dock Navigation (Proximity Scale Magnification)
+   - Animated Gradient Text & Number Ticker
+   - Magic Dot Grid Pattern & Meteor Streaks
    ========================================================================== */
 
 @layer base, theme, components, utilities;
+
+/* Houdini @property for smooth 60fps Conic Border Beam rotation */
+@property --beam-angle {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+}
 
 /* --------------------------------------------------------------------------
    Font Definitions: Sarabun (Offline)
@@ -57,13 +70,14 @@
         --in-oklab: ;
         --in-oklch: ;
 
-        /* Brand & Semantic Palette */
+        /* Brand & Magic UI Palette */
         --primary-color: #4f46e5;
         --primary-hover: #4338ca;
         --primary-light: rgba(224, 231, 255, 0.72);
         --secondary-color: #7c3aed;
         --secondary-hover: #6d28d9;
         --cyan-accent: #06b6d4;
+        --pink-accent: #ec4899;
         --success-color: #10b981;
         --success-hover: #059669;
         --danger-color: #ef4444;
@@ -72,6 +86,11 @@
         --warning-hover: #d97706;
         --info-color: #0ea5e9;
         --info-hover: #0284c7;
+
+        /* Magic UI Beam Color Stops */
+        --beam-color-1: #4f46e5;
+        --beam-color-2: #06b6d4;
+        --beam-color-3: #d946ef;
 
         /* Slate Ink Palette */
         --slate-50: #f8fafc;
@@ -88,30 +107,31 @@
         --light-color: #f8fafc;
 
         /* Perceptual Gradients */
-        --gradient-primary: linear-gradient(135deg var(--in-oklab), #4f46e5 0%, #6366f1 48%, #8b5cf6 100%);
-        --gradient-primary-hover: linear-gradient(135deg var(--in-oklab), #4338ca 0%, #4f46e5 50%, #7c3aed 100%);
+        --gradient-primary: linear-gradient(135deg var(--in-oklab), #4f46e5 0%, #6366f1 48%, #9333ea 100%);
+        --gradient-primary-hover: linear-gradient(135deg var(--in-oklab), #4338ca 0%, #4f46e5 50%, #7e22ce 100%);
         --gradient-success: linear-gradient(135deg var(--in-oklab), #10b981 0%, #059669 100%);
         --gradient-danger: linear-gradient(135deg var(--in-oklab), #ef4444 0%, #dc2626 100%);
         --gradient-warning: linear-gradient(135deg var(--in-oklab), #f59e0b 0%, #d97706 100%);
         --gradient-info: linear-gradient(135deg var(--in-oklab), #0ea5e9 0%, #2563eb 100%);
-        --gradient-prismatic: linear-gradient(125deg var(--in-oklab),
-            rgba(255, 255, 255, 0.78) 0%,
-            rgba(224, 242, 254, 0.62) 32%,
-            rgba(238, 242, 255, 0.68) 68%,
-            rgba(243, 232, 255, 0.64) 100%);
+        --gradient-magic-text: linear-gradient(90deg var(--in-oklab),
+            #1e1b4b 0%,
+            #4f46e5 28%,
+            #06b6d4 52%,
+            #9333ea 76%,
+            #1e1b4b 100%);
 
         /* Daylight Liquid Glass Material Tokens */
-        --glass-surface: rgba(255, 255, 255, 0.56);
-        --glass-surface-elevated: rgba(255, 255, 255, 0.72);
-        --glass-surface-subtle: rgba(255, 255, 255, 0.40);
-        --glass-surface-input: rgba(255, 255, 255, 0.62);
-        --glass-border-outer: rgba(255, 255, 255, 0.82);
-        --glass-border-subtle: rgba(255, 255, 255, 0.64);
+        --glass-surface: rgba(255, 255, 255, 0.58);
+        --glass-surface-elevated: rgba(255, 255, 255, 0.74);
+        --glass-surface-subtle: rgba(255, 255, 255, 0.42);
+        --glass-surface-input: rgba(255, 255, 255, 0.64);
+        --glass-border-outer: rgba(255, 255, 255, 0.84);
+        --glass-border-subtle: rgba(255, 255, 255, 0.66);
         --glass-blur: blur(26px) saturate(195%);
         --glass-blur-deep: blur(36px) saturate(210%);
         --glass-blur-soft: blur(16px) saturate(175%);
 
-        /* Multi-layered Specular Shadows (Depth + Inner Rim Light) */
+        /* Multi-layered Specular Shadows */
         --glass-shadow:
             0 18px 42px -12px rgba(15, 23, 42, 0.08),
             0 4px 14px -2px rgba(79, 70, 229, 0.05),
@@ -119,18 +139,19 @@
             inset 0 -1px 1px 0 rgba(148, 163, 184, 0.22);
         --glass-shadow-lg:
             0 26px 54px -14px rgba(15, 23, 42, 0.13),
-            0 8px 22px -4px rgba(79, 70, 229, 0.09),
+            0 8px 24px -4px rgba(79, 70, 229, 0.11),
             inset 0 2px 2px 0 rgba(255, 255, 255, 0.96),
-            inset 0 -1px 2px 0 rgba(99, 102, 241, 0.18);
+            inset 0 -1px 2px 0 rgba(99, 102, 241, 0.20);
         --glass-shadow-pill:
-            0 8px 20px -4px rgba(79, 70, 229, 0.18),
+            0 8px 20px -4px rgba(79, 70, 229, 0.22),
             inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.95),
             inset 0 -1px 1px 0 rgba(79, 70, 229, 0.15);
 
-        /* Interactive Cursor Tracking Defaults */
+        /* Interactive Cursor & Dock Tracking Defaults */
         --mouse-x: 50%;
         --mouse-y: 50%;
         --spotlight-opacity: 0;
+        --dock-scale: 1;
 
         /* Transitions & Easing */
         --transition-smooth: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
@@ -180,7 +201,7 @@
 }
 
 /* --------------------------------------------------------------------------
-   Layer: Components - Ambient Aurora Canvas & SVG Filter Hooks
+   Layer: Components - Magic UI Dot Pattern, Meteors & Aurora Canvas
    -------------------------------------------------------------------------- */
 @layer components {
     .liquid-svg-defs {
@@ -199,6 +220,58 @@
         pointer-events: none;
         isolation: isolate;
     }
+
+    /* Magic UI Dot Pattern Overlay with Radial Fade Mask */
+    .magic-dot-pattern {
+        position: absolute;
+        inset: 0;
+        --dot-color: rgba(99, 102, 241, 0.22);
+        --dot-radius: 1.15px;
+        --dot-space: 24px;
+        background-image: radial-gradient(circle, var(--dot-color) var(--dot-radius), transparent calc(var(--dot-radius) + 0.5px));
+        background-size: var(--dot-space) var(--dot-space);
+        -webkit-mask-image: radial-gradient(ellipse 80% 75% at 50% 35%, #000 35%, transparent 100%);
+        mask-image: radial-gradient(ellipse 80% 75% at 50% 35%, #000 35%, transparent 100%);
+        opacity: 0.85;
+    }
+
+    /* Magic UI Meteor Streaks */
+    .magic-meteors {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        pointer-events: none;
+    }
+
+    .meteor-streak {
+        position: absolute;
+        width: 140px;
+        height: 1.5px;
+        background: linear-gradient(90deg, rgba(99, 102, 241, 0.85), rgba(6, 182, 212, 0.45), transparent);
+        border-radius: 999px;
+        transform: rotate(-35deg);
+        opacity: 0;
+        filter: drop-shadow(0 0 6px rgba(99, 102, 241, 0.5));
+        animation: meteorShower 7.5s linear infinite;
+    }
+
+    .meteor-streak::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background: #ffffff;
+        box-shadow: 0 0 10px 2px rgba(6, 182, 212, 0.9);
+    }
+
+    .meteor-streak:nth-child(1) { top: 8%; left: 28%; animation-delay: 0.4s; animation-duration: 6.8s; }
+    .meteor-streak:nth-child(2) { top: 18%; left: 68%; animation-delay: 2.2s; animation-duration: 8.2s; }
+    .meteor-streak:nth-child(3) { top: 32%; left: 82%; animation-delay: 4.1s; animation-duration: 7.4s; }
+    .meteor-streak:nth-child(4) { top: 12%; left: 48%; animation-delay: 5.5s; animation-duration: 9.0s; }
 
     .aurora-orb {
         position: absolute;
@@ -254,7 +327,7 @@
     }
 
     /* ----------------------------------------------------------------------
-       Floating Glass Pill Navbar
+       Magic UI Dock + Floating Glass Pill Navbar
        ---------------------------------------------------------------------- */
     .navbar-glass-wrapper {
         position: sticky;
@@ -268,9 +341,9 @@
         max-width: 1380px;
         margin: 0 auto;
         background: linear-gradient(135deg var(--in-oklab),
-            rgba(255, 255, 255, 0.68) 0%,
-            rgba(240, 247, 255, 0.54) 50%,
-            rgba(243, 238, 255, 0.64) 100%);
+            rgba(255, 255, 255, 0.72) 0%,
+            rgba(240, 247, 255, 0.58) 50%,
+            rgba(243, 238, 255, 0.68) 100%);
         backdrop-filter: var(--glass-blur-deep);
         -webkit-backdrop-filter: var(--glass-blur-deep);
         border: 1px solid var(--glass-border-outer);
@@ -286,20 +359,44 @@
         transition: var(--transition-smooth);
     }
 
-    /* Interactive Cursor Specular Highlight on Navbar */
+    /* Magic Card Spotlight inside Navbar */
     .navbar-custom::before {
         content: '';
         position: absolute;
         inset: 0;
         border-radius: inherit;
         background: radial-gradient(
-            420px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
-            rgba(255, 255, 255, 0.65),
-            rgba(99, 102, 241, 0.08) 40%,
+            380px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+            rgba(255, 255, 255, 0.75),
+            rgba(99, 102, 241, 0.12) 42%,
             transparent 75%
         );
         opacity: var(--spotlight-opacity, 0);
         transition: opacity 0.3s ease;
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    /* Subtle Border Beam around Navbar on Hover */
+    .navbar-custom::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        padding: 1.5px;
+        background: conic-gradient(
+            from var(--beam-angle),
+            transparent 0%,
+            transparent 70%,
+            var(--beam-color-2) 82%,
+            var(--beam-color-1) 92%,
+            var(--beam-color-3) 100%
+        );
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        opacity: 0.55;
+        animation: borderBeamSpin 8s linear infinite;
         pointer-events: none;
         z-index: 0;
     }
@@ -340,54 +437,57 @@
         transform: translateY(-1px);
     }
 
+    /* Magic Dock Magnification on Nav Links */
     .navbar-custom .nav-link {
         color: var(--slate-700) !important;
         font-weight: 600;
         font-size: 0.94rem;
         padding: 0.5rem 1.05rem !important;
         border-radius: 999px;
-        margin: 0 0.18rem;
+        margin: 0 0.2rem;
         display: inline-flex;
         align-items: center;
         gap: 0.45rem;
         position: relative;
         overflow: hidden;
-        transition: var(--transition-smooth);
+        transform: scale(var(--dock-scale, 1)) translateY(calc((1 - var(--dock-scale, 1)) * 6px));
+        transform-origin: center bottom;
+        transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+        will-change: transform;
     }
 
     .navbar-custom .nav-link:hover {
-        background: rgba(255, 255, 255, 0.58);
+        background: rgba(255, 255, 255, 0.68);
         color: var(--primary-color) !important;
-        box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.9);
-        transform: translateY(-1px);
+        box-shadow:
+            0 6px 14px -4px rgba(79, 70, 229, 0.14),
+            inset 0 1px 1px rgba(255, 255, 255, 0.95);
     }
 
     .navbar-custom .nav-link.active {
-        background: linear-gradient(135deg var(--in-oklab),
-            rgba(79, 70, 229, 0.92) 0%,
-            rgba(124, 58, 237, 0.88) 100%);
+        background: var(--gradient-primary);
         color: #ffffff !important;
         font-weight: 600;
         box-shadow:
-            0 6px 16px -3px rgba(79, 70, 229, 0.42),
-            inset 0 1.5px 1px rgba(255, 255, 255, 0.55),
+            0 8px 18px -3px rgba(79, 70, 229, 0.45),
+            inset 0 1.5px 1px rgba(255, 255, 255, 0.6),
             inset 0 -1px 1px rgba(30, 27, 75, 0.25);
     }
 
     .navbar-custom .nav-link-logout {
         color: var(--danger-color) !important;
-        background: rgba(254, 242, 242, 0.55);
-        border: 1px solid rgba(252, 165, 165, 0.45);
+        background: rgba(254, 242, 242, 0.58);
+        border: 1px solid rgba(252, 165, 165, 0.48);
     }
 
     .navbar-custom .nav-link-logout:hover {
-        background: rgba(239, 68, 68, 0.14);
+        background: rgba(239, 68, 68, 0.15);
         color: var(--danger-hover) !important;
-        border-color: rgba(239, 68, 68, 0.4);
+        border-color: rgba(239, 68, 68, 0.45);
     }
 
     /* ----------------------------------------------------------------------
-       Page Layout & Balanced Typography
+       Page Layout & Magic UI Animated Gradient Text
        ---------------------------------------------------------------------- */
     .page-container {
         padding: 1.85rem 2rem 3rem;
@@ -401,7 +501,6 @@
     }
 
     .page-header h1 {
-        color: var(--slate-900);
         font-size: clamp(1.65rem, 1.3rem + 1.1vw, 2.15rem);
         font-weight: 700;
         letter-spacing: -0.02em;
@@ -410,6 +509,17 @@
         align-items: center;
         gap: 0.65rem;
         text-wrap: balance;
+        background: var(--gradient-magic-text);
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        animation: magicGradientFlow 6s linear infinite;
+    }
+
+    .page-header h1 .svg-icon {
+        color: var(--primary-color);
+        filter: drop-shadow(0 4px 10px rgba(79, 70, 229, 0.25));
     }
 
     .text-muted-custom {
@@ -419,13 +529,13 @@
     }
 
     /* ----------------------------------------------------------------------
-       Liquid Glass Cards & Nested Surfaces
+       Magic Card + Smart Dynamic Border Beam + Liquid Glass Cards
        ---------------------------------------------------------------------- */
     .card-custom {
         background: linear-gradient(145deg var(--in-oklab),
-            rgba(255, 255, 255, 0.66) 0%,
-            rgba(255, 255, 255, 0.46) 55%,
-            rgba(244, 247, 255, 0.58) 100%);
+            rgba(255, 255, 255, 0.68) 0%,
+            rgba(255, 255, 255, 0.48) 55%,
+            rgba(244, 247, 255, 0.60) 100%);
         backdrop-filter: var(--glass-blur);
         -webkit-backdrop-filter: var(--glass-blur);
         border: 1px solid var(--glass-border-outer);
@@ -438,17 +548,18 @@
         isolation: isolate;
     }
 
-    /* Interactive Cursor Specular Spotlight Overlay */
+    /* Magic Card Inner Cursor Spotlight */
     .card-custom::before {
         content: '';
         position: absolute;
         inset: 0;
         border-radius: inherit;
         background: radial-gradient(
-            540px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
-            rgba(255, 255, 255, 0.55) 0%,
-            rgba(99, 102, 241, 0.07) 38%,
-            transparent 72%
+            520px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+            rgba(255, 255, 255, 0.62) 0%,
+            rgba(99, 102, 241, 0.09) 35%,
+            rgba(6, 182, 212, 0.05) 55%,
+            transparent 75%
         );
         opacity: var(--spotlight-opacity, 0);
         transition: opacity 0.35s ease;
@@ -456,22 +567,43 @@
         z-index: 0;
     }
 
-    /* Top Specular Refractive Edge Sheen */
+    /* Magic UI Border Beam + Proximity Radial Border Mask */
     .card-custom::after {
         content: '';
         position: absolute;
-        top: 0;
-        left: 8%;
-        right: 8%;
-        height: 1.5px;
-        background: linear-gradient(90deg,
-            transparent 0%,
-            rgba(255, 255, 255, 0.95) 30%,
-            rgba(165, 180, 252, 0.85) 50%,
-            rgba(255, 255, 255, 0.95) 70%,
-            transparent 100%);
+        inset: 0;
+        border-radius: inherit;
+        padding: 1.75px;
+        background:
+            radial-gradient(
+                280px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+                rgba(79, 70, 229, 0.75),
+                rgba(6, 182, 212, 0.55) 45%,
+                transparent 100%
+            ),
+            conic-gradient(
+                from var(--beam-angle),
+                transparent 0%,
+                transparent 68%,
+                var(--beam-color-2) 80%,
+                var(--beam-color-1) 90%,
+                var(--beam-color-3) 100%
+            );
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        opacity: var(--spotlight-opacity, 0);
+        transition: opacity 0.35s ease;
         pointer-events: none;
-        z-index: 1;
+        z-index: 2;
+    }
+
+    /* Smart Dynamic Border Beam: Always-on for first/hero card on page, or on hover/focus-within */
+    .page-container > .card-custom:first-of-type::after,
+    .card-custom:hover::after,
+    .card-custom:focus-within::after {
+        opacity: 1;
+        animation: borderBeamSpin 6.5s linear infinite;
     }
 
     .card-custom > * {
@@ -487,9 +619,9 @@
 
     .card-custom .card-header {
         background: linear-gradient(90deg var(--in-oklab),
-            rgba(255, 255, 255, 0.52) 0%,
-            rgba(241, 245, 255, 0.38) 100%);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.68);
+            rgba(255, 255, 255, 0.56) 0%,
+            rgba(241, 245, 255, 0.42) 100%);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.72);
         border-radius: 24px 24px 0 0 !important;
         padding: 1.15rem 1.75rem;
         font-weight: 600;
@@ -500,12 +632,12 @@
         padding: 1.65rem 1.75rem;
     }
 
-    /* Nested Sub-cards (Replaces opaque .bg-light blocks) */
+    /* Nested Sub-cards */
     .glass-subcard {
-        background: rgba(255, 255, 255, 0.46) !important;
+        background: rgba(255, 255, 255, 0.48) !important;
         backdrop-filter: var(--glass-blur-soft);
         -webkit-backdrop-filter: var(--glass-blur-soft);
-        border: 1px solid rgba(255, 255, 255, 0.78) !important;
+        border: 1px solid rgba(255, 255, 255, 0.80) !important;
         border-radius: 18px !important;
         box-shadow:
             0 6px 18px -6px rgba(15, 23, 42, 0.05),
@@ -515,30 +647,31 @@
 
     .glass-subcard:has(input:checked),
     .glass-subcard:hover {
-        background: rgba(255, 255, 255, 0.64) !important;
-        border-color: rgba(99, 102, 241, 0.45) !important;
+        background: rgba(255, 255, 255, 0.68) !important;
+        border-color: rgba(99, 102, 241, 0.48) !important;
         box-shadow:
-            0 10px 24px -8px rgba(79, 70, 229, 0.12),
+            0 10px 24px -8px rgba(79, 70, 229, 0.14),
             inset 0 1.5px 1px rgba(255, 255, 255, 0.95);
     }
 
-    /* Glass Pill Badges (Replaces opaque .bg-light badges) */
+    /* Glass Pill Badges + Magic Number Ticker support */
     .glass-pill {
-        background: rgba(255, 255, 255, 0.62) !important;
+        background: rgba(255, 255, 255, 0.66) !important;
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
         color: var(--slate-700) !important;
-        border: 1px solid rgba(255, 255, 255, 0.85) !important;
+        border: 1px solid rgba(255, 255, 255, 0.88) !important;
         border-radius: 999px !important;
-        padding: 0.38rem 0.85rem !important;
+        padding: 0.38rem 0.88rem !important;
         font-weight: 600;
+        font-variant-numeric: tabular-nums;
         box-shadow:
             0 2px 8px rgba(15, 23, 42, 0.05),
             inset 0 1px 0.5px rgba(255, 255, 255, 0.9);
     }
 
     /* ----------------------------------------------------------------------
-       Liquid Gel Buttons & Ripple Effect
+       Magic UI Shimmer Buttons & Liquid Click Ripple
        ---------------------------------------------------------------------- */
     .btn-custom {
         border-radius: 999px;
@@ -552,6 +685,7 @@
         gap: 0.5rem;
         position: relative;
         overflow: hidden;
+        isolation: isolate;
         transition: var(--transition-smooth);
         box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.55);
     }
@@ -560,15 +694,63 @@
         transform: scale(0.96) !important;
     }
 
+    /* Magic UI Shimmer Sweep across Primary & Action Buttons */
+    .btn-primary-custom,
+    .btn-success.btn-custom,
+    .btn-danger.btn-custom {
+        position: relative;
+    }
+
+    .btn-primary-custom::before,
+    .btn-success.btn-custom::before,
+    .btn-danger.btn-custom::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -120%;
+        width: 75%;
+        height: 100%;
+        background: linear-gradient(
+            110deg,
+            transparent 0%,
+            rgba(255, 255, 255, 0.42) 50%,
+            transparent 100%
+        );
+        transform: skewX(-20deg);
+        animation: magicShimmerSweep 3.8s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    /* Orbiting Shimmer Rim on Primary Button */
+    .btn-primary-custom::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        padding: 1.5px;
+        background: conic-gradient(
+            from var(--beam-angle),
+            transparent 0%,
+            rgba(255, 255, 255, 0.9) 25%,
+            transparent 50%,
+            rgba(56, 189, 248, 0.85) 75%,
+            transparent 100%
+        );
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        animation: borderBeamSpin 4s linear infinite;
+        pointer-events: none;
+        z-index: 1;
+    }
+
     .btn-primary-custom {
-        background: linear-gradient(135deg var(--in-oklab),
-            rgba(79, 70, 229, 0.92) 0%,
-            rgba(99, 102, 241, 0.90) 50%,
-            rgba(124, 58, 237, 0.92) 100%);
+        background: var(--gradient-primary);
         border: 1px solid rgba(255, 255, 255, 0.45);
         color: #ffffff !important;
         box-shadow:
-            0 8px 20px -4px rgba(79, 70, 229, 0.42),
+            0 8px 22px -4px rgba(79, 70, 229, 0.45),
             inset 0 1.5px 1px rgba(255, 255, 255, 0.55),
             inset 0 -1px 1px rgba(30, 27, 75, 0.25);
     }
@@ -577,16 +759,17 @@
         background: var(--gradient-primary-hover);
         transform: translateY(-2px);
         box-shadow:
-            0 12px 26px -4px rgba(79, 70, 229, 0.52),
-            inset 0 1.5px 2px rgba(255, 255, 255, 0.7);
+            0 14px 28px -4px rgba(79, 70, 229, 0.55),
+            0 0 16px rgba(6, 182, 212, 0.28),
+            inset 0 1.5px 2px rgba(255, 255, 255, 0.75);
         color: #ffffff !important;
     }
 
     .btn-secondary-custom,
     .btn-secondary.btn-custom {
-        background: rgba(255, 255, 255, 0.65);
+        background: rgba(255, 255, 255, 0.68);
         backdrop-filter: blur(14px);
-        border: 1px solid rgba(255, 255, 255, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.88);
         color: var(--slate-700) !important;
         box-shadow:
             0 4px 12px rgba(15, 23, 42, 0.06),
@@ -595,7 +778,7 @@
 
     .btn-secondary-custom:hover:not(:disabled),
     .btn-secondary.btn-custom:hover:not(:disabled) {
-        background: rgba(255, 255, 255, 0.88);
+        background: rgba(255, 255, 255, 0.90);
         border-color: #ffffff;
         color: var(--slate-900) !important;
         transform: translateY(-1px);
@@ -623,8 +806,8 @@
     }
 
     .table-custom thead th {
-        background: rgba(255, 255, 255, 0.42);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.72);
+        background: rgba(255, 255, 255, 0.44);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.74);
         padding: 1rem 1.25rem;
         font-weight: 700;
         color: var(--slate-700);
@@ -639,7 +822,7 @@
     }
 
     .table-custom tbody tr:hover {
-        background: rgba(255, 255, 255, 0.56);
+        background: rgba(255, 255, 255, 0.58);
         box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
     }
 
@@ -668,7 +851,7 @@
         backdrop-filter: blur(14px);
         -webkit-backdrop-filter: blur(14px);
         border-radius: 14px;
-        border: 1px solid rgba(255, 255, 255, 0.82);
+        border: 1px solid rgba(255, 255, 255, 0.84);
         padding: 0.68rem 1.1rem;
         font-size: 0.95rem;
         color: var(--slate-800);
@@ -681,11 +864,12 @@
 
     .form-control-custom:focus,
     .form-select.form-control-custom:focus {
-        border-color: rgba(99, 102, 241, 0.65);
+        border-color: rgba(99, 102, 241, 0.72);
         box-shadow:
             0 0 0 4px rgba(99, 102, 241, 0.16),
+            0 0 14px rgba(6, 182, 212, 0.18),
             inset 0 1px 1px rgba(255, 255, 255, 0.95);
-        background-color: rgba(255, 255, 255, 0.84);
+        background-color: rgba(255, 255, 255, 0.86);
         outline: none;
     }
 
@@ -695,10 +879,10 @@
 
     .glass-addon,
     .input-group-text.glass-addon {
-        background: rgba(255, 255, 255, 0.56) !important;
+        background: rgba(255, 255, 255, 0.58) !important;
         backdrop-filter: blur(14px);
         -webkit-backdrop-filter: blur(14px);
-        border: 1px solid rgba(255, 255, 255, 0.82) !important;
+        border: 1px solid rgba(255, 255, 255, 0.84) !important;
         color: var(--slate-600);
         border-radius: 14px 0 0 14px;
         box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.85);
@@ -706,8 +890,8 @@
     }
 
     .input-group:has(.form-control-custom:focus) .glass-addon {
-        background: rgba(255, 255, 255, 0.84) !important;
-        border-color: rgba(99, 102, 241, 0.65) !important;
+        background: rgba(255, 255, 255, 0.86) !important;
+        border-color: rgba(99, 102, 241, 0.72) !important;
         color: var(--primary-color);
     }
 
@@ -729,43 +913,43 @@
 
     .badge-custom.badge-success,
     .badge-custom.bg-success {
-        background: linear-gradient(135deg var(--in-oklab), rgba(16, 185, 129, 0.88), rgba(5, 150, 105, 0.92)) !important;
+        background: linear-gradient(135deg var(--in-oklab), rgba(16, 185, 129, 0.90), rgba(5, 150, 105, 0.94)) !important;
         color: #ffffff !important;
-        border: 1px solid rgba(167, 243, 208, 0.6);
+        border: 1px solid rgba(167, 243, 208, 0.65);
     }
 
     .badge-custom.badge-danger,
     .badge-custom.bg-danger {
-        background: linear-gradient(135deg var(--in-oklab), rgba(239, 68, 68, 0.88), rgba(220, 38, 38, 0.92)) !important;
+        background: linear-gradient(135deg var(--in-oklab), rgba(239, 68, 68, 0.90), rgba(220, 38, 38, 0.94)) !important;
         color: #ffffff !important;
-        border: 1px solid rgba(254, 202, 202, 0.6);
+        border: 1px solid rgba(254, 202, 202, 0.65);
     }
 
     .badge-custom.badge-primary,
     .badge-custom.bg-primary {
         background: var(--gradient-primary) !important;
         color: #ffffff !important;
-        border: 1px solid rgba(199, 210, 254, 0.6);
+        border: 1px solid rgba(199, 210, 254, 0.65);
     }
 
     /* ----------------------------------------------------------------------
-       Prismatic Liquid Glass Recording Cockpit & Ripple Visualizer
+       Prismatic Magic UI Recording Cockpit & State-Reactive Border Beam
        ---------------------------------------------------------------------- */
     .timer-cockpit {
         background: linear-gradient(135deg var(--in-oklab),
-            rgba(255, 255, 255, 0.68) 0%,
-            rgba(224, 242, 254, 0.52) 45%,
-            rgba(238, 242, 255, 0.62) 100%);
+            rgba(255, 255, 255, 0.72) 0%,
+            rgba(224, 242, 254, 0.54) 45%,
+            rgba(238, 242, 255, 0.66) 100%);
         backdrop-filter: var(--glass-blur-deep);
         -webkit-backdrop-filter: var(--glass-blur-deep);
         border: 1.5px solid rgba(255, 255, 255, 0.92);
         border-radius: 32px;
-        padding: 2.5rem 2rem;
+        padding: 2.6rem 2rem;
         text-align: center;
         margin-bottom: 2rem;
         box-shadow:
-            0 24px 52px -12px rgba(79, 70, 229, 0.14),
-            0 8px 20px -6px rgba(14, 165, 233, 0.10),
+            0 24px 52px -12px rgba(79, 70, 229, 0.16),
+            0 8px 20px -6px rgba(14, 165, 233, 0.12),
             inset 0 2px 2px 0 rgba(255, 255, 255, 0.98),
             inset 0 -2px 4px 0 rgba(99, 102, 241, 0.15);
         position: relative;
@@ -774,7 +958,7 @@
         transition: var(--transition-smooth);
     }
 
-    /* Cursor Spotlight inside Cockpit */
+    /* Magic Card Spotlight inside Cockpit */
     .timer-cockpit::before {
         content: '';
         position: absolute;
@@ -782,13 +966,36 @@
         border-radius: inherit;
         background: radial-gradient(
             620px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
-            rgba(255, 255, 255, 0.72),
-            rgba(56, 189, 248, 0.12) 45%,
+            rgba(255, 255, 255, 0.75),
+            rgba(56, 189, 248, 0.14) 45%,
             transparent 75%
         );
-        opacity: var(--spotlight-opacity, 0.45);
+        opacity: var(--spotlight-opacity, 0.5);
         pointer-events: none;
         z-index: 0;
+    }
+
+    /* Always-on Magic UI Border Beam on Recording Cockpit */
+    .timer-cockpit::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        padding: 2.25px;
+        background: conic-gradient(
+            from var(--beam-angle),
+            transparent 0%,
+            transparent 58%,
+            var(--beam-color-2) 74%,
+            var(--beam-color-1) 88%,
+            var(--beam-color-3) 100%
+        );
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        animation: borderBeamSpin 5.5s linear infinite;
+        pointer-events: none;
+        z-index: 3;
     }
 
     /* Animated Liquid Wave Layers inside Cockpit */
@@ -800,7 +1007,7 @@
         height: 140%;
         border-radius: 42%;
         background: radial-gradient(circle at 50% 30%,
-            rgba(99, 102, 241, 0.15) 0%,
+            rgba(99, 102, 241, 0.16) 0%,
             rgba(56, 189, 248, 0.12) 50%,
             transparent 75%);
         filter: url(#liquid-refract);
@@ -813,47 +1020,66 @@
         bottom: -72%;
         border-radius: 46%;
         background: radial-gradient(circle at 50% 40%,
-            rgba(168, 85, 247, 0.12) 0%,
+            rgba(168, 85, 247, 0.14) 0%,
             rgba(45, 212, 191, 0.10) 55%,
             transparent 75%);
         animation: liquidWaveRotate 22s linear infinite reverse;
     }
 
+    /* State-reactive Border Beam & Surface when Recording */
     .timer-cockpit.is-recording {
+        --beam-color-1: #ef4444;
+        --beam-color-2: #f97316;
+        --beam-color-3: #ec4899;
         background: linear-gradient(135deg var(--in-oklab),
-            rgba(255, 255, 255, 0.72) 0%,
-            rgba(254, 226, 226, 0.48) 50%,
-            rgba(238, 242, 255, 0.64) 100%);
-        border-color: rgba(252, 165, 165, 0.88);
+            rgba(255, 255, 255, 0.74) 0%,
+            rgba(254, 226, 226, 0.52) 50%,
+            rgba(238, 242, 255, 0.66) 100%);
         box-shadow:
-            0 24px 54px -12px rgba(239, 68, 68, 0.18),
+            0 24px 54px -12px rgba(239, 68, 68, 0.22),
             inset 0 2px 2px 0 rgba(255, 255, 255, 0.98);
     }
 
-    .timer-cockpit.is-paused {
-        background: linear-gradient(135deg var(--in-oklab),
-            rgba(255, 255, 255, 0.72) 0%,
-            rgba(254, 243, 199, 0.52) 50%,
-            rgba(255, 255, 255, 0.66) 100%);
-        border-color: rgba(252, 211, 77, 0.88);
+    .timer-cockpit.is-recording::after {
+        animation-duration: 3.2s;
     }
 
-    .timer-cockpit > *:not(.cockpit-liquid-wave) {
+    /* State-reactive Border Beam & Surface when Paused */
+    .timer-cockpit.is-paused {
+        --beam-color-1: #f59e0b;
+        --beam-color-2: #eab308;
+        --beam-color-3: #f97316;
+        background: linear-gradient(135deg var(--in-oklab),
+            rgba(255, 255, 255, 0.74) 0%,
+            rgba(254, 243, 199, 0.54) 50%,
+            rgba(255, 255, 255, 0.68) 100%);
+    }
+
+    .timer-cockpit.is-completed {
+        --beam-color-1: #10b981;
+        --beam-color-2: #06b6d4;
+        --beam-color-3: #34d399;
+    }
+
+    .timer-cockpit > *:not(.cockpit-liquid-wave):not(.magic-meteors) {
         position: relative;
         z-index: 2;
     }
 
     .timer-display {
-        font-size: clamp(2.75rem, 2rem + 3vw, 4.1rem);
+        font-size: clamp(2.75rem, 2rem + 3vw, 4.2rem);
         font-weight: 700;
         font-family: 'Courier New', Courier, monospace;
+        font-variant-numeric: tabular-nums;
         letter-spacing: 0.08em;
-        background: linear-gradient(135deg var(--in-oklab), #1e1b4b 0%, #312e81 45%, #4f46e5 100%);
+        background: var(--gradient-magic-text);
+        background-size: 200% auto;
         -webkit-background-clip: text;
         background-clip: text;
         color: transparent;
-        filter: drop-shadow(0 4px 12px rgba(79, 70, 229, 0.18));
+        filter: drop-shadow(0 4px 14px rgba(79, 70, 229, 0.22));
         margin: 0.55rem 0;
+        animation: magicGradientFlow 5s linear infinite;
     }
 
     .recording-badge-live {
@@ -861,9 +1087,9 @@
         align-items: center;
         gap: 0.55rem;
         padding: 0.42rem 1.15rem;
-        background: rgba(255, 255, 255, 0.68);
+        background: rgba(255, 255, 255, 0.72);
         backdrop-filter: blur(14px);
-        border: 1px solid rgba(255, 255, 255, 0.92);
+        border: 1px solid rgba(255, 255, 255, 0.94);
         border-radius: 999px;
         color: var(--slate-800);
         font-size: 0.85rem;
@@ -887,7 +1113,7 @@
 
     .timer-cockpit.is-recording .recording-badge-live .rec-dot {
         background-color: var(--danger-color);
-        box-shadow: 0 0 12px rgba(239, 68, 68, 0.8);
+        box-shadow: 0 0 12px rgba(239, 68, 68, 0.85);
     }
 
     .cockpit-help-text {
@@ -896,7 +1122,7 @@
     }
 
     /* ----------------------------------------------------------------------
-       Participants Visualizer Grid & Liquid Ripple Speaker Cards
+       Participants Visualizer Grid & Speaking Border Beam + Ripple Cards
        ---------------------------------------------------------------------- */
     .participants-grid {
         display: grid;
@@ -929,12 +1155,37 @@
         border-radius: inherit;
         background: radial-gradient(
             260px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
-            rgba(255, 255, 255, 0.65),
-            transparent 70%
+            rgba(255, 255, 255, 0.68),
+            rgba(99, 102, 241, 0.08) 45%,
+            transparent 72%
         );
         opacity: var(--spotlight-opacity, 0);
         pointer-events: none;
         z-index: 0;
+    }
+
+    /* Magic Border Beam on Participant Card when Hovering or Speaking */
+    .participant-card::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        padding: 2px;
+        background: conic-gradient(
+            from var(--beam-angle),
+            transparent 0%,
+            transparent 60%,
+            #10b981 78%,
+            #06b6d4 90%,
+            #34d399 100%
+        );
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        opacity: 0;
+        transition: opacity 0.25s ease;
+        pointer-events: none;
+        z-index: 2;
     }
 
     .participant-card > * {
@@ -947,16 +1198,26 @@
         box-shadow: var(--glass-shadow-lg);
     }
 
+    .participant-card:hover::after {
+        opacity: 0.65;
+        animation: borderBeamSpin 5s linear infinite;
+    }
+
     .participant-card.speaking {
         background: linear-gradient(155deg var(--in-oklab),
-            rgba(236, 253, 245, 0.82) 0%,
-            rgba(209, 250, 229, 0.58) 55%,
-            rgba(255, 255, 255, 0.72) 100%);
-        border-color: rgba(16, 185, 129, 0.75);
+            rgba(236, 253, 245, 0.84) 0%,
+            rgba(209, 250, 229, 0.60) 55%,
+            rgba(255, 255, 255, 0.74) 100%);
+        border-color: rgba(16, 185, 129, 0.55);
         box-shadow:
-            0 16px 36px -8px rgba(16, 185, 129, 0.28),
-            0 0 0 1px rgba(255, 255, 255, 0.8) inset;
-        transform: translateY(-4px) scale(1.015);
+            0 18px 38px -8px rgba(16, 185, 129, 0.30),
+            0 0 0 1px rgba(255, 255, 255, 0.85) inset;
+        transform: translateY(-4px) scale(1.02);
+    }
+
+    .participant-card.speaking::after {
+        opacity: 1;
+        animation: borderBeamSpin 2.6s linear infinite;
     }
 
     .participant-avatar-wrap {
@@ -993,7 +1254,7 @@
         transform: scale(1.06);
     }
 
-    /* Multi-ring Liquid Ripple around Speaking Avatar */
+    /* Multi-ring Magic UI Ripple around Speaking Avatar */
     .avatar-glow-ring,
     .liquid-ripple-ring {
         position: absolute;
@@ -1051,7 +1312,7 @@
     .participant-card.speaking .soundwave-bar:nth-child(4) { animation-delay: 0.32s; }
 
     /* ----------------------------------------------------------------------
-       Login Page (Daylight Prismatic Liquid Glass Portal)
+       Login Page (Magic UI × Daylight Liquid Glass Portal)
        ---------------------------------------------------------------------- */
     .login-container {
         min-height: 100vh;
@@ -1096,7 +1357,6 @@
         animation: floatOrb 11s ease-in-out infinite alternate-reverse;
     }
 
-    /* Decorative Floating Liquid Glass Droplets on Login */
     .liquid-droplet-deco {
         position: absolute;
         border-radius: 50%;
@@ -1128,16 +1388,16 @@
 
     .login-card {
         background: linear-gradient(145deg var(--in-oklab),
-            rgba(255, 255, 255, 0.72) 0%,
-            rgba(255, 255, 255, 0.52) 55%,
-            rgba(240, 247, 255, 0.66) 100%);
+            rgba(255, 255, 255, 0.74) 0%,
+            rgba(255, 255, 255, 0.54) 55%,
+            rgba(240, 247, 255, 0.68) 100%);
         backdrop-filter: var(--glass-blur-deep);
         -webkit-backdrop-filter: var(--glass-blur-deep);
         border: 1.5px solid rgba(255, 255, 255, 0.88);
         border-radius: 32px;
         box-shadow:
             0 28px 60px -15px rgba(30, 41, 59, 0.16),
-            0 8px 24px -6px rgba(79, 70, 229, 0.10),
+            0 8px 24px -6px rgba(79, 70, 229, 0.12),
             inset 0 2px 2px 0 rgba(255, 255, 255, 0.96),
             inset 0 -1px 2px 0 rgba(99, 102, 241, 0.16);
         padding: 3.1rem 2.65rem;
@@ -1146,6 +1406,7 @@
         position: relative;
         z-index: 10;
         overflow: hidden;
+        isolation: isolate;
         animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
     }
 
@@ -1156,13 +1417,36 @@
         border-radius: inherit;
         background: radial-gradient(
             420px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
-            rgba(255, 255, 255, 0.65),
-            rgba(99, 102, 241, 0.08) 45%,
+            rgba(255, 255, 255, 0.68),
+            rgba(99, 102, 241, 0.10) 45%,
             transparent 75%
         );
         opacity: var(--spotlight-opacity, 0);
         pointer-events: none;
         z-index: 0;
+    }
+
+    /* Always-on Magic UI Border Beam on Login Card */
+    .login-card::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        padding: 2px;
+        background: conic-gradient(
+            from var(--beam-angle),
+            transparent 0%,
+            transparent 62%,
+            var(--beam-color-2) 78%,
+            var(--beam-color-1) 90%,
+            var(--beam-color-3) 100%
+        );
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        animation: borderBeamSpin 5.5s linear infinite;
+        pointer-events: none;
+        z-index: 2;
     }
 
     .login-card > * {
@@ -1192,12 +1476,17 @@
     }
 
     .login-header h1 {
-        color: var(--slate-900);
-        font-size: 1.8rem;
+        font-size: 1.85rem;
         font-weight: 700;
         letter-spacing: -0.02em;
         margin-bottom: 0.35rem;
         text-wrap: balance;
+        background: var(--gradient-magic-text);
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        animation: magicGradientFlow 6s linear infinite;
     }
 
     .login-header p {
@@ -1216,8 +1505,8 @@
 
     .modal-content {
         background: linear-gradient(145deg var(--in-oklab),
-            rgba(255, 255, 255, 0.82) 0%,
-            rgba(245, 248, 255, 0.74) 100%) !important;
+            rgba(255, 255, 255, 0.84) 0%,
+            rgba(245, 248, 255, 0.76) 100%) !important;
         backdrop-filter: var(--glass-blur-deep);
         -webkit-backdrop-filter: var(--glass-blur-deep);
         border: 1.5px solid rgba(255, 255, 255, 0.92);
@@ -1225,8 +1514,32 @@
         box-shadow:
             0 30px 64px -12px rgba(15, 23, 42, 0.22),
             inset 0 2px 2px rgba(255, 255, 255, 0.96);
+        position: relative;
         overflow: hidden;
+        isolation: isolate;
         animation: modalPop 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    .modal-content::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        padding: 1.75px;
+        background: conic-gradient(
+            from var(--beam-angle),
+            transparent 0%,
+            transparent 68%,
+            var(--beam-color-2) 82%,
+            var(--beam-color-1) 92%,
+            var(--beam-color-3) 100%
+        );
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        animation: borderBeamSpin 7s linear infinite;
+        pointer-events: none;
+        z-index: 2;
     }
 
     .modal-header {
@@ -1297,8 +1610,8 @@
 
     .toast-custom {
         background: linear-gradient(135deg var(--in-oklab),
-            rgba(255, 255, 255, 0.84) 0%,
-            rgba(244, 247, 255, 0.76) 100%) !important;
+            rgba(255, 255, 255, 0.86) 0%,
+            rgba(244, 247, 255, 0.78) 100%) !important;
         backdrop-filter: var(--glass-blur-deep);
         -webkit-backdrop-filter: var(--glass-blur-deep);
         border-radius: 999px;
@@ -1383,9 +1696,57 @@
             border-radius: 24px;
             padding: 0.65rem 1rem;
         }
+        .navbar-custom .nav-link {
+            transform: none !important;
+        }
         .page-container {
             padding: 1.25rem 1rem 2.5rem;
         }
+    }
+}
+
+@keyframes borderBeamSpin {
+    0% {
+        --beam-angle: 0deg;
+    }
+    100% {
+        --beam-angle: 360deg;
+    }
+}
+
+@keyframes magicShimmerSweep {
+    0% {
+        left: -120%;
+    }
+    35%, 100% {
+        left: 160%;
+    }
+}
+
+@keyframes magicGradientFlow {
+    0% {
+        background-position: 0% 50%;
+    }
+    100% {
+        background-position: 200% 50%;
+    }
+}
+
+@keyframes meteorShower {
+    0% {
+        transform: rotate(-35deg) translateX(0);
+        opacity: 0;
+    }
+    8% {
+        opacity: 0.85;
+    }
+    35% {
+        transform: rotate(-35deg) translateX(-480px);
+        opacity: 0;
+    }
+    100% {
+        transform: rotate(-35deg) translateX(-480px);
+        opacity: 0;
     }
 }
 
